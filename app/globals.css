@@ -1,0 +1,150 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Newsreader Variable", ui-serif, Georgia, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --color-brand: var(--brand);
+  --color-brand-lime: var(--brand-lime);
+  --color-brand-leaf: var(--brand-leaf);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.65);
+  --radius-md: calc(var(--radius) * 0.82);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.35);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --brand: #00953e;
+  --brand-leaf: #77b72a;
+  --brand-lime: #c1d000;
+  --background: #f5f7f2;
+  --foreground: #14241a;
+  --card: #ffffff;
+  --card-foreground: #14241a;
+  --popover: #ffffff;
+  --popover-foreground: #14241a;
+  --primary: #007b34;
+  --primary-foreground: #ffffff;
+  --secondary: #e9eee6;
+  --secondary-foreground: #1b3b28;
+  --muted: #edf1e9;
+  --muted-foreground: #607065;
+  --accent: #e7f0c2;
+  --accent-foreground: #234117;
+  --destructive: #b42318;
+  --border: #d9e1d6;
+  --input: #cbd6c8;
+  --ring: #00953e;
+  --chart-1: #00953e;
+  --chart-2: #77b72a;
+  --chart-3: #c1d000;
+  --chart-4: #2f7661;
+  --chart-5: #6e806f;
+  --radius: 0.75rem;
+  --sidebar: #0d2b1a;
+  --sidebar-foreground: #eef7f0;
+  --sidebar-primary: #c1d000;
+  --sidebar-primary-foreground: #102814;
+  --sidebar-accent: #17462b;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #285239;
+  --sidebar-ring: #77b72a;
+}
+
+.dark {
+  --background: #07110b;
+  --foreground: #edf5ef;
+  --card: #0d1c13;
+  --card-foreground: #edf5ef;
+  --popover: #102218;
+  --popover-foreground: #edf5ef;
+  --primary: #45b968;
+  --primary-foreground: #05150b;
+  --secondary: #14271b;
+  --secondary-foreground: #dce9df;
+  --muted: #132219;
+  --muted-foreground: #9aaca0;
+  --accent: #283718;
+  --accent-foreground: #e8f49e;
+  --destructive: #ff716b;
+  --border: #26382d;
+  --input: #34483b;
+  --ring: #77b72a;
+  --chart-1: #45b968;
+  --chart-2: #8ccc3f;
+  --chart-3: #cbd948;
+  --chart-4: #63a994;
+  --chart-5: #9aaca0;
+  --sidebar: #08160e;
+  --sidebar-foreground: #eaf4ec;
+  --sidebar-primary: #c1d000;
+  --sidebar-primary-foreground: #102814;
+  --sidebar-accent: #173624;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #24422f;
+  --sidebar-ring: #77b72a;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    background-image: radial-gradient(circle at 88% 0%, color-mix(in srgb, var(--brand-lime) 9%, transparent), transparent 25rem);
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--brand-lime) 55%, transparent);
+    color: var(--foreground);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
