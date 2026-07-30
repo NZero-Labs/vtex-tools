@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/active-update-retention",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}
