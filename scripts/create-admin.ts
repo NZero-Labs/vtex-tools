@@ -17,6 +17,20 @@ const input = z
 const [existing] = await db.select({ id: user.id }).from(user).where(eq(user.email, input.ADMIN_EMAIL)).limit(1);
 
 if (existing) {
+  const context = await auth.$context;
+  const password = await context.password.hash(input.ADMIN_PASSWORD);
+  const accounts = await context.internalAdapter.findAccounts(existing.id);
+
+  if (accounts.some((account) => account.providerId === "credential")) {
+    await context.internalAdapter.updatePassword(existing.id, password);
+  } else {
+    await context.internalAdapter.createAccount({
+      accountId: existing.id,
+      providerId: "credential",
+      password,
+      userId: existing.id,
+    });
+  }
   await db.update(user).set({ role: "ADMIN", banned: false, banReason: null, updatedAt: new Date() }).where(eq(user.id, existing.id));
   console.info(`Administrador atualizado: ${input.ADMIN_EMAIL}`);
 } else {

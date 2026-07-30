@@ -3,6 +3,8 @@ import { z } from "zod";
 const serverEnvSchema = z.object({
   BETTER_AUTH_URL: z.url().default("http://localhost:3000"),
   BETTER_AUTH_SECRET: z.string().min(32, "BETTER_AUTH_SECRET deve ter ao menos 32 caracteres"),
+  DATABASE_ENV: z.enum(["test", "production"]).default("test"),
+  NEON_BRANCH: z.enum(["test", "production"]),
   DATABASE_URL: z.string().min(1, "DATABASE_URL é obrigatória"),
   CRON_SECRET: z.string().min(16, "CRON_SECRET deve ter ao menos 16 caracteres").optional(),
   RESEND_API_KEY: z.string().optional(),
@@ -19,6 +21,15 @@ const serverEnvSchema = z.object({
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
+export function assertNeonBranch(
+  databaseEnv: ServerEnv["DATABASE_ENV"],
+  neonBranch: ServerEnv["NEON_BRANCH"],
+) {
+  if (databaseEnv !== neonBranch) {
+    throw new Error(`Branch Neon inválido: ${databaseEnv} exige NEON_BRANCH=${databaseEnv}`);
+  }
+}
+
 let cachedEnv: ServerEnv | undefined;
 
 export function getServerEnv() {
@@ -34,6 +45,7 @@ export function getServerEnv() {
     const missing = result.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; ");
     throw new Error(`Configuração inválida: ${missing}`);
   }
+  assertNeonBranch(result.data.DATABASE_ENV, result.data.NEON_BRANCH);
 
   cachedEnv = result.data;
   return result.data;

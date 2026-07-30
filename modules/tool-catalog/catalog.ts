@@ -18,7 +18,7 @@ export type ToolDefinition = {
 export const toolCatalog = [
   {
     id: "active-update",
-    name: "Atualizar ativo",
+    name: "Atualizar Ativa",
     description: "Atualize o uso de cupom de clientes em massa por CSV.",
     route: "/ferramentas/atualizar-ativo",
     icon: "user-check",
