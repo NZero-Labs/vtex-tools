@@ -7,8 +7,11 @@ describe("serializeComparisonCsv", () => {
   it("exporta todos os itens e escapa valores para planilhas", () => {
     const budget = (id: string) => ({
       id,
+      kind: "budget" as const,
       items: [],
       totals: { subtotal: 100, discount: 0, shipping: 10, tax: null, total: 110 },
+      shipping: { deliveryTypes: [], slas: [], value: 10 },
+      promotions: [],
       marketingTags: [],
     });
     const report: ComparisonReport = {
@@ -28,6 +31,12 @@ describe("serializeComparisonCsv", () => {
           financialDelta: 5,
           changes: ["totalPrice"],
         })),
+        priceBreakdown: [],
+        shipping: { postalCodeChanged: false, deliveryTypesChanged: false, slasChanged: false, valueDelta: 0 },
+        promotions: [],
+        marketingTags: { added: [], removed: [] },
+        weight: null,
+        warnings: [],
       }],
     };
 

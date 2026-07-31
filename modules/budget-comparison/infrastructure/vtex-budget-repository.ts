@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { ServerEnv } from "@/lib/env";
-import { normalizeBudget, type NormalizedBudget } from "../domain/budget-comparison";
+import { normalizeBudget, type BudgetRecord } from "../domain/budget-comparison";
 
 export class BudgetIntegrationError extends Error {
   constructor(message: string, readonly status = 502) {
@@ -10,7 +10,7 @@ export class BudgetIntegrationError extends Error {
   }
 }
 
-const fixtures: Record<string, unknown> = {
+export const budgetFixtures: Record<string, unknown> = {
   "DEMO-1001": {
     id: "fixture-a",
     idBudget: "DEMO-1001",
@@ -20,8 +20,10 @@ const fixtures: Record<string, unknown> = {
       { skuId: "53003", productId: "530", name: "Kit de fixação para telhado", quantity: 3, price: 35_000, sellingPrice: 32_000, totalPrice: 96_000, sellerId: "1", refId: "FIX-TEL" },
     ],
     totals: { subtotal: 1_556_000, discount: -80_120, shipping: 35_000, tax: 0, total: 1_510_880 },
-    shippingType: "Normal",
+    shippingType: "AMARANZ LOGISTICA CAJ/FSA",
     deliveryType: "delivery",
+    postalCode: "01310-100",
+    updatedAt: "2026-07-30T14:00:00.000Z",
     marketingTags: ["energia-solar"],
   },
   "DEMO-1002": {
@@ -33,8 +35,10 @@ const fixtures: Record<string, unknown> = {
       { skuId: "64004", productId: "640", name: "String box CC", quantity: 1, price: 89_000, sellingPrice: 85_000, totalPrice: 85_000, sellerId: "1", refId: "SB-CC" },
     ],
     totals: { subtotal: 1_689_000, discount: -85_000, shipping: 48_000, tax: 0, total: 1_652_000 },
-    shippingType: "Expresso",
+    shippingType: "EXP LOGISTICA CAJ/FSA",
     deliveryType: "delivery",
+    postalCode: "01310-100",
+    updatedAt: "2026-07-31T14:00:00.000Z",
     marketingTags: ["energia-solar", "campanha-julho"],
   },
 };
@@ -43,10 +47,10 @@ export async function fetchBudget(
   budgetId: string,
   env: ServerEnv,
   fetcher: typeof fetch = fetch,
-): Promise<NormalizedBudget> {
+): Promise<BudgetRecord> {
   if (env.USE_VTEX_FIXTURES) {
     if (process.env.NODE_ENV === "production") throw new BudgetIntegrationError("Fixtures VTEX não podem ser usadas em produção", 503);
-    const fixture = fixtures[budgetId];
+    const fixture = budgetFixtures[budgetId];
     if (!fixture) throw new BudgetIntegrationError(`Orçamento ${budgetId} não encontrado nas fixtures`, 404);
     return normalizeBudget(fixture, env.VTEX_MONEY_SCALE);
   }

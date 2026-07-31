@@ -61,6 +61,16 @@ const headers = [
   "Total item comparado",
   "Vendedores comparado",
   "Impacto financeiro",
+  "CEP base",
+  "SLAs base",
+  "CEP comparado",
+  "SLAs comparados",
+  "Promoções divergentes",
+  "Tags adicionadas",
+  "Tags removidas",
+  "Peso base (kg)",
+  "Peso comparado (kg)",
+  "Diferença de peso (kg)",
 ];
 
 function csvCell(value: unknown) {
@@ -112,6 +122,16 @@ export function serializeComparisonCsv(report: ComparisonReport) {
       item?.candidate?.totalPrice,
       item?.candidate?.sellerIds.join(", "),
       item?.financialDelta,
+      baseline.shipping.postalCode,
+      baseline.shipping.slas.join(", "),
+      candidate.shipping.postalCode,
+      candidate.shipping.slas.join(", "),
+      comparison.promotions.filter((promotion) => promotion.status !== "unchanged").map((promotion) => promotion.name).join(", "),
+      comparison.marketingTags.added.join(", "),
+      comparison.marketingTags.removed.join(", "),
+      comparison.weight?.baselineTotalKg,
+      comparison.weight?.candidateTotalKg,
+      comparison.weight?.deltaKg,
     ]);
   });
 

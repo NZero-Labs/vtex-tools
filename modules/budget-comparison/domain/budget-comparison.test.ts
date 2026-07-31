@@ -4,6 +4,9 @@ import {
   budgetRequestSchema,
   compareBudgets,
   normalizeBudget,
+  normalizeOrderForm,
+  normalizeSla,
+  toPublicSubject,
 } from "./budget-comparison";
 
 const rawBudget = (idBudget: string, overrides: Record<string, unknown> = {}) => ({
@@ -93,6 +96,43 @@ describe("normalizeBudget", () => {
     expect(budget.totals).toEqual({ subtotal: 200, discount: 20, shipping: 10, tax: null, total: 190 });
     expect(budget.marketingTags).toEqual([]);
   });
+
+  it("mantém identificador interno somente no registro do servidor", () => {
+    const budget = normalizeBudget(rawBudget("101"), 100);
+
+    expect(budget.documentId).toBe("document-101");
+    expect(toPublicSubject(budget)).not.toHaveProperty("documentId");
+  });
+});
+
+describe("normalizeOrderForm", () => {
+  it("normaliza centavos, todos os SLAs, tags e promoções sem inventar valores", () => {
+    const cart = normalizeOrderForm({
+      orderFormId: "order-form-12345",
+      items: [{ id: "SKU-1", name: "Módulo", quantity: 2, price: 10_000, sellingPrice: 9_000, seller: "1", priceTags: [] }],
+      totalizers: [{ id: "Items", value: 18_000 }, { id: "Shipping", value: 1_000 }],
+      value: 19_000,
+      shippingData: {
+        address: { postalCode: "01310-100", street: "não serializar" },
+        logisticsInfo: [
+          { selectedSla: "AMARANZ LOGISTICA CAJ/FSA", selectedDeliveryChannel: "delivery" },
+          { selectedSla: "FOB LOGISTICA CAJ/FSA", selectedDeliveryChannel: "delivery" },
+        ],
+      },
+      marketingData: { marketingTags: ["Solar"] },
+      ratesAndBenefitsData: { rateAndBenefitsIdentifiers: [{ id: "promo-1", name: "Benefício sem valor" }] },
+    });
+
+    expect(cart.items[0]).toMatchObject({ quantity: 2, sellingPrice: 90, totalPrice: 180 });
+    expect(cart.shipping).toEqual({ postalCode: "01310-100", deliveryTypes: ["delivery"], slas: ["PDO/CIF", "PDO/FOB"], value: 10 });
+    expect(cart.promotions).toEqual([{ id: "promo-1", name: "Benefício sem valor", value: null }]);
+    expect(cart.marketingTags).toEqual(["solar"]);
+    expect(cart).not.toHaveProperty("clientProfileData");
+  });
+
+  it("preserva SLA desconhecido", () => {
+    expect(normalizeSla("Transportadora regional")).toBe("Transportadora regional");
+  });
 });
 
 describe("compareBudgets", () => {
@@ -158,5 +198,22 @@ describe("compareBudgets", () => {
     expect(difference.type).toBe("changed");
     expect(difference.changes).toContain("quantity");
     expect(difference.impact).not.toBe("none");
+  });
+
+  it("compara logística, promoções, tags, preço e peso parcial", () => {
+    const baseline = { ...normalizeBudget(rawBudget("101"), 100), weight: { totalKg: 10, complete: true, missingSkuIds: [] } };
+    const candidate = {
+      ...normalizeBudget(rawBudget("102", { postalCode: "99999-999", shippingType: "Expresso", marketingTags: ["nova"] }), 100),
+      promotions: [{ id: "promo", name: "Promoção", value: null }],
+      weight: { totalKg: 12, complete: false, missingSkuIds: ["SKU-1"] },
+    };
+
+    const result = compareBudgets(baseline, candidate);
+
+    expect(result.shipping).toMatchObject({ postalCodeChanged: true, slasChanged: true });
+    expect(result.marketingTags.added).toEqual(["nova"]);
+    expect(result.promotions[0]).toMatchObject({ status: "added", candidateValue: null });
+    expect(result.weight).toMatchObject({ deltaKg: null, complete: false });
+    expect(result.warnings).toHaveLength(2);
   });
 });

@@ -1,32 +1,19 @@
-import { hasCapability } from "@/lib/auth/permissions";
-import { getCurrentPrincipal } from "@/lib/auth/session";
-import { db } from "@/lib/db";
-import { recentTool } from "@/lib/db/schema";
 import { getServerEnv } from "@/lib/env";
 import {
   budgetRequestSchema,
   compareBudgets,
+  toPublicSubject,
 } from "@/modules/budget-comparison/domain/budget-comparison";
+import { getBudgetAuditPrincipal, recordBudgetAuditUse } from "@/modules/budget-comparison/data";
+import { addWeights } from "@/modules/budget-comparison/infrastructure/vtex-catalog-repository";
 import {
   BudgetIntegrationError,
   fetchBudget,
 } from "@/modules/budget-comparison/infrastructure/vtex-budget-repository";
-import { getToolAccess } from "@/modules/tool-catalog/data";
 
 export async function POST(request: Request) {
-  const principal = await getCurrentPrincipal();
-  if (!principal)
-    return Response.json(
-      { error: "Sessão expirada. Entre novamente." },
-      { status: 401 },
-    );
-  if (!hasCapability(principal, "budget:compare"))
-    return Response.json({ error: "Acesso negado." }, { status: 403 });
-  if (!(await getToolAccess(principal, "budget-comparison")).allowed)
-    return Response.json(
-      { error: "Esta ferramenta não está disponível para sua conta." },
-      { status: 403 },
-    );
+  const access = await getBudgetAuditPrincipal();
+  if (!access.ok) return Response.json({ error: access.error }, { status: access.status });
 
   const parsed = budgetRequestSchema.safeParse(
     await request.json().catch(() => null),
@@ -39,24 +26,15 @@ export async function POST(request: Request) {
 
   try {
     const env = getServerEnv();
-    const budgets = await Promise.all(
+    const records = await Promise.all(
       parsed.data.budgetIds.map((budgetId) => fetchBudget(budgetId, env)),
     );
+    const budgets = await addWeights(records.map(toPublicSubject), env);
     const baseline = budgets[0];
     if (!baseline)
       throw new BudgetIntegrationError("Orçamento base ausente", 400);
 
-    await db
-      .insert(recentTool)
-      .values({
-        userId: principal.id,
-        toolId: "budget-comparison",
-        usedAt: new Date(),
-      })
-      .onConflictDoUpdate({
-        target: [recentTool.userId, recentTool.toolId],
-        set: { usedAt: new Date() },
-      });
+    await recordBudgetAuditUse(access.principal);
 
     return Response.json({
       source: env.USE_VTEX_FIXTURES ? "fixture" : "vtex",
