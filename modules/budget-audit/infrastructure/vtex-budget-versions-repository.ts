@@ -3,8 +3,10 @@ import "server-only";
 import { z } from "zod";
 
 import type { ServerEnv } from "@/lib/env";
-import { normalizeBudget, type BudgetRecord } from "../domain/budget-comparison";
-import { BudgetIntegrationError, budgetFixtures } from "./vtex-budget-repository";
+import type { BudgetRecord } from "../domain/subject";
+import { normalizeBudget } from "./normalize-vtex-subjects";
+import { budgetFixtures } from "./vtex-budget-fixtures";
+import { BudgetIntegrationError } from "./vtex-integration-error";
 
 const versionSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
@@ -21,7 +23,7 @@ const fixtureVersions: Record<string, Array<{ metadata: BudgetVersion; document:
     {
       metadata: { id: "demo-v1", author: "demo@amara.com.br", date: "2026-07-20T12:00:00.000Z" },
       document: {
-        ...(budgetFixtures["DEMO-1001"] as Record<string, unknown>),
+        ...budgetFixtures["DEMO-1001"],
         items: [
           { skuId: "31001", productId: "310", name: "Módulo fotovoltaico 550 W", quantity: 10, price: 82_990, sellingPrice: 81_000, totalPrice: 810_000, sellerId: "1" },
           { skuId: "42002", productId: "420", name: "Inversor solar 6 kW", quantity: 1, price: 438_000, sellingPrice: 425_000, totalPrice: 425_000, sellerId: "1" },

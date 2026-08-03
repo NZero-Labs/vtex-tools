@@ -1,14 +1,14 @@
 import type {
-  BudgetComparison,
   DifferenceType,
   Impact,
-  NormalizedBudget,
-} from "../domain/budget-comparison";
+  NormalizedSubject,
+  SubjectComparison,
+} from "../domain/subject";
 
 export type ComparisonReport = {
   source: "fixture" | "vtex";
-  budgets: NormalizedBudget[];
-  comparisons: BudgetComparison[];
+  budgets: NormalizedSubject[];
+  comparisons: SubjectComparison[];
 };
 
 export const typeLabels: Record<DifferenceType, string> = {

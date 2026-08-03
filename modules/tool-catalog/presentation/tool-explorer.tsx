@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowUpRight, FileDiff, Search, Star, UserRoundCheck } from "lucide-react";
+import { ArrowUpRight, FileDiff, RotateCcw, Search, Star, UserRoundCheck } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { Input } from "@/components/ui/input";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { toggleFavorite } from "../actions";
@@ -39,15 +40,17 @@ function ToolCard({ tool }: { tool: VisibleTool }) {
   const Icon = tool.icon === "user-check" ? UserRoundCheck : FileDiff;
 
   return (
-    <Card className="group relative transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5">
+    <Card className="group relative transition-transform duration-200 hover:-translate-y-0.5">
       <CardHeader>
-        <div className="bg-accent text-accent-foreground mb-4 flex size-11 items-center justify-center rounded-xl"><Icon className="size-5" aria-hidden /></div>
+        <div className="bg-accent text-accent-foreground mb-4 flex size-11 items-center justify-center rounded-xl">
+          <Icon className="size-5" aria-hidden />
+        </div>
         <CardTitle className="pr-10 text-xl">{tool.name}</CardTitle>
         <CardDescription className="mt-1 leading-6">{tool.description}</CardDescription>
         <CardAction>
           <form action={toggleFavorite.bind(null, tool.id)}>
             <Button type="submit" variant="ghost" size="icon-sm" aria-label={tool.favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}>
-              <Star className={cn(tool.favorite && "fill-brand-lime text-brand-leaf")} />
+              <Star className={cn(tool.favorite && "fill-brand-lime text-brand-leaf")} aria-hidden />
             </Button>
           </form>
         </CardAction>
@@ -83,26 +86,54 @@ export function ToolExplorer({ tools, favoritesOnly = false }: { tools: VisibleT
     );
   }, [category, favoritesOnly, search, status, tools]);
 
+  const hasFilters = Boolean(search || status !== "all" || category !== "all");
+
+  function clearFilters() {
+    setSearch("");
+    setStatus("all");
+    setCategory("all");
+  }
+
   return (
-    <div>
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row">
-        <div className="relative flex-1">
-          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" aria-hidden />
-          <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por nome, tag ou função…" className="h-10 bg-card pl-9" aria-label="Buscar ferramentas" />
-        </div>
+    <div className="flex flex-col gap-6">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(18rem,1fr)_12rem_11rem_auto]">
+        <Field className="sm:col-span-2 lg:col-span-1">
+          <FieldLabel htmlFor="tool-search" className="sr-only">Buscar ferramentas</FieldLabel>
+          <InputGroup className="h-10">
+            <InputGroupAddon><Search aria-hidden /></InputGroupAddon>
+            <InputGroupInput
+              id="tool-search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Buscar por nome, tag ou função…"
+            />
+          </InputGroup>
+        </Field>
         <Select value={category} onValueChange={(value) => setCategory(value ?? "all")}>
-          <SelectTrigger className="h-10 w-full bg-card sm:w-44"><SelectValue placeholder="Categoria" /></SelectTrigger>
+          <SelectTrigger className="h-10 w-full" aria-label="Filtrar por categoria"><SelectValue placeholder="Categoria" /></SelectTrigger>
           <SelectContent><SelectGroup><SelectItem value="all">Todas as categorias</SelectItem>{categories.map((item) => <SelectItem value={item} key={item}>{item}</SelectItem>)}</SelectGroup></SelectContent>
         </Select>
         <Select value={status} onValueChange={(value) => setStatus(value ?? "all")}>
-          <SelectTrigger className="h-10 w-full bg-card sm:w-40"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="h-10 w-full" aria-label="Filtrar por status"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent><SelectGroup><SelectItem value="all">Todos os status</SelectItem>{Object.entries(statusLabel).map(([value, label]) => <SelectItem value={value} key={value}>{label}</SelectItem>)}</SelectGroup></SelectContent>
         </Select>
+        <Button type="button" variant="ghost" className="h-10" onClick={clearFilters} disabled={!hasFilters}>
+          <RotateCcw data-icon="inline-start" /> Limpar
+        </Button>
       </div>
 
-      {visible.length ? <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">{visible.map((tool) => <ToolCard key={tool.id} tool={tool} />)}</div> : (
+      <p className="text-muted-foreground text-sm" aria-live="polite">
+        {visible.length} {visible.length === 1 ? "ferramenta encontrada" : "ferramentas encontradas"}
+      </p>
+
+      {visible.length ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{visible.map((tool) => <ToolCard key={tool.id} tool={tool} />)}</div> : (
         <Empty className="min-h-64 border bg-card/50">
-          <EmptyHeader><EmptyMedia variant="icon"><Search /></EmptyMedia><EmptyTitle>Nenhuma ferramenta encontrada</EmptyTitle><EmptyDescription>Ajuste a busca ou os filtros para ver outras opções.</EmptyDescription></EmptyHeader>
+          <EmptyHeader>
+            <EmptyMedia variant="icon"><Search /></EmptyMedia>
+            <EmptyTitle>Nenhuma ferramenta encontrada</EmptyTitle>
+            <EmptyDescription>{favoritesOnly ? "Favorite uma ferramenta no catálogo para encontrá-la aqui." : "Ajuste a busca ou os filtros para ver outras opções."}</EmptyDescription>
+          </EmptyHeader>
+          {hasFilters && <Button type="button" variant="outline" onClick={clearFilters}>Limpar filtros</Button>}
         </Empty>
       )}
     </div>

@@ -10,6 +10,7 @@
 - [x] Implementar shell, dashboard, catálogo, favoritos e recentes.
 - [x] Implementar domínio e integração da auditoria de orçamentos.
 - [x] Implementar interface responsiva da auditoria.
+- [x] Implementar auditoria de orçamento versus carrinho e de versões históricas.
 - [x] Implementar administração e log.
 - [x] Implementar perfil, preferências, acesso negado, 404 e erros globais.
 - [x] Executar lint, typecheck e testes relacionados por etapa.

@@ -45,3 +45,14 @@ export async function getVisibleTools(principal: Principal & { id: string }) {
 export async function getPlatformUpdates() {
   return db.select().from(platformUpdate).orderBy(desc(platformUpdate.publishedAt), desc(platformUpdate.sortOrder)).limit(3);
 }
+
+export async function recordToolUse(userId: string, toolId: string) {
+  const usedAt = new Date();
+  await db
+    .insert(recentTool)
+    .values({ userId, toolId, usedAt })
+    .onConflictDoUpdate({
+      target: [recentTool.userId, recentTool.toolId],
+      set: { usedAt },
+    });
+}

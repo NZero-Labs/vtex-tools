@@ -21,6 +21,7 @@
 /build
 
 docs/superpowers/
+docs/codebase-refactor/
 
 # misc
 .DS_Store

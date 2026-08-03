@@ -34,7 +34,7 @@
 - Implementados dashboard, busca/filtros, catálogo central, favoritos, recentes, novidades, perfil e preferências.
 - Implementados gerenciamento de usuários, papéis, bloqueio lógico, catálogo, permissões e log administrativo.
 
-### Comparação de orçamentos
+### Auditoria de orçamentos
 
 - Reimplementados schema, normalização monetária explícita, agregação de SKUs e comparação pura com testes.
 - Adicionada consulta VTEX somente no servidor e fixtures identificadas exclusivas para desenvolvimento/teste.
@@ -42,3 +42,4 @@
 - Campos de totalização ausentes são exibidos como não informados, sem inventar valor zero.
 - Corrigido o acrônimo da entidade Amara para `BD` e o suporte ao payload real com totais na raiz e campos opcionais nulos.
 - Respostas VTEX de schema ou permissão inválida agora retornam mensagens específicas em vez de um 502 genérico.
+- Adicionados os fluxos de orçamento versus carrinho e de comparação de versões históricas.

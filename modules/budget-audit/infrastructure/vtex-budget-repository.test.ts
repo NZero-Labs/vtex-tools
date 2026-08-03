@@ -3,7 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 import type { ServerEnv } from "@/lib/env";
-import { BudgetIntegrationError, fetchBudget } from "./vtex-budget-repository";
+import { fetchBudget } from "./vtex-budget-repository";
+import type { BudgetIntegrationError } from "./vtex-integration-error";
 
 const env: ServerEnv = {
   BETTER_AUTH_URL: "http://localhost:3000",
@@ -19,6 +20,10 @@ const env: ServerEnv = {
   VTEX_MONEY_SCALE: 100,
   VTEX_TIMEOUT_MS: 1_000,
   USE_VTEX_FIXTURES: false,
+  AZURE_CLIENT_ID: "test-client",
+  AZURE_CLIENT_SECRET: "test-secret",
+  AZURE_REDIRECT_URI: "http://localhost:3000/api/auth/callback/microsoft",
+  AZURE_TENANT_ID: "common",
 };
 
 describe("fetchBudget", () => {

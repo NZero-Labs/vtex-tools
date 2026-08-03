@@ -2,7 +2,17 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BookOpenCheck, FileDiff, Grid2X2, Heart, KeyRound, LogOut, Settings, ShieldCheck, Users } from "lucide-react";
+import {
+  BookOpenCheck,
+  FileDiff,
+  Grid2X2,
+  Heart,
+  KeyRound,
+  LogOut,
+  Settings,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { BrandLogo } from "@/components/brand-logo";
@@ -49,28 +59,32 @@ export function AppSidebar({ user }: { user: { name: string; email: string; role
 
   const menu = (items: typeof primaryItems) => (
     <SidebarMenu>
-      {items.map(({ href, label, icon: Icon }) => (
-        <SidebarMenuItem key={href}>
-          <SidebarMenuButton
-            render={<Link href={href} />}
-            isActive={pathname === href || (href !== "/dashboard" && pathname.startsWith(`${href}/`))}
-            tooltip={label}
-            className="h-10 px-3"
-          >
-            <Icon />
-            <span>{label}</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      ))}
+      {items.map(({ href, label, icon: Icon }) => {
+        const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(`${href}/`));
+
+        return (
+          <SidebarMenuItem key={href}>
+            <SidebarMenuButton
+              render={<Link href={href} aria-current={isActive ? "page" : undefined} />}
+              isActive={isActive}
+              tooltip={label}
+              className="h-10 px-3"
+            >
+              <Icon />
+              <span>{label}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        );
+      })}
     </SidebarMenu>
   );
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4 group-data-[collapsible=icon]:p-2">
-        <Link href="/dashboard" className="flex h-11 items-center overflow-hidden rounded-md focus-visible:outline-2 focus-visible:outline-sidebar-ring">
+    <Sidebar collapsible="icon" variant="inset">
+      <SidebarHeader className="p-4 pb-2 group-data-[collapsible=icon]:p-2">
+        <Link href="/dashboard" className="flex h-12 items-center overflow-hidden rounded-lg px-1 focus-visible:outline-2 focus-visible:outline-sidebar-ring">
           <BrandLogo className="w-40 shrink-0 brightness-0 invert group-data-[collapsible=icon]:hidden" />
-          <span className="hidden size-8 shrink-0 items-center justify-center rounded-full bg-sidebar-primary font-heading text-xl font-bold text-sidebar-primary-foreground group-data-[collapsible=icon]:flex">V</span>
+          <span className="hidden size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary font-heading text-xl font-bold text-sidebar-primary-foreground group-data-[collapsible=icon]:flex">V</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>
@@ -90,7 +104,10 @@ export function AppSidebar({ user }: { user: { name: string; email: string; role
           <SidebarMenuItem>
             <SidebarMenuButton render={<Link href="/perfil" />} size="lg" tooltip="Perfil e preferências">
               <Avatar className="size-8 rounded-lg"><AvatarFallback className="rounded-lg bg-sidebar-accent text-xs text-sidebar-accent-foreground">{initials}</AvatarFallback></Avatar>
-              <span className="min-w-0 flex-1"><span className="block truncate font-medium">{user.name}</span><span className="block truncate text-xs text-sidebar-foreground/60">{user.email}</span></span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-medium">{user.name}</span>
+                <span className="block truncate text-xs text-sidebar-foreground/60">{user.email}</span>
+              </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

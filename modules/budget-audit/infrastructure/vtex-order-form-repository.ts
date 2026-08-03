@@ -3,8 +3,9 @@ import "server-only";
 import { z } from "zod";
 
 import type { ServerEnv } from "@/lib/env";
-import { normalizeOrderForm, type NormalizedSubject } from "../domain/budget-comparison";
-import { BudgetIntegrationError } from "./vtex-budget-repository";
+import type { NormalizedSubject } from "../domain/subject";
+import { normalizeOrderForm } from "./normalize-vtex-subjects";
+import { BudgetIntegrationError } from "./vtex-integration-error";
 
 const idSchema = z.string().regex(/^[A-Za-z0-9-]{11,200}$/, "ID do carrinho inválido");
 

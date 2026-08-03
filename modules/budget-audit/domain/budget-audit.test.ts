@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 
+import { compareAuditSubjects } from "./compare-subjects";
+import { budgetRequestSchema } from "./requests";
+import { toPublicSubject } from "./subject";
 import {
-  budgetRequestSchema,
-  compareBudgets,
   normalizeBudget,
   normalizeOrderForm,
   normalizeSla,
-  toPublicSubject,
-} from "./budget-comparison";
+} from "../infrastructure/normalize-vtex-subjects";
 
 const rawBudget = (idBudget: string, overrides: Record<string, unknown> = {}) => ({
   id: `document-${idBudget}`,
@@ -135,7 +135,7 @@ describe("normalizeOrderForm", () => {
   });
 });
 
-describe("compareBudgets", () => {
+describe("compareAuditSubjects", () => {
   it("identifica itens adicionados, removidos e alterados", () => {
     const baseline = normalizeBudget(
       rawBudget("101", {
@@ -172,7 +172,7 @@ describe("compareBudgets", () => {
       100,
     );
 
-    const result = compareBudgets(baseline, candidate);
+    const result = compareAuditSubjects(baseline, candidate);
 
     expect(result.summary).toMatchObject({ added: 1, removed: 1, changed: 1 });
     expect(result.items.find((item) => item.skuId === "SKU-1")).toMatchObject({
@@ -191,7 +191,7 @@ describe("compareBudgets", () => {
       100,
     );
 
-    const difference = compareBudgets(baseline, candidate).items[0];
+    const difference = compareAuditSubjects(baseline, candidate).items[0];
 
     expect(difference).toBeDefined();
     if (!difference) throw new Error("A comparação deveria conter o SKU informado");
@@ -208,7 +208,7 @@ describe("compareBudgets", () => {
       weight: { totalKg: 12, complete: false, missingSkuIds: ["SKU-1"] },
     };
 
-    const result = compareBudgets(baseline, candidate);
+    const result = compareAuditSubjects(baseline, candidate);
 
     expect(result.shipping).toMatchObject({ postalCodeChanged: true, slasChanged: true });
     expect(result.marketingTags.added).toEqual(["nova"]);

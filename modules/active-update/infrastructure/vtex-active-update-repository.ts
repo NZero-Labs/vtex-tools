@@ -1,14 +1,11 @@
 import "server-only";
 
 import type { ServerEnv } from "@/lib/env";
-import { MAX_ATTEMPTS, type ActiveUpdateRow } from "../domain/active-update";
-
-export type ActiveUpdateResult = {
-  status: "updated" | "unchanged" | "failed";
-  code: string;
-  message: string;
-  attempts: number;
-};
+import {
+  MAX_ATTEMPTS,
+  type ActiveUpdateResult,
+  type ActiveUpdateRow,
+} from "../domain/active-update";
 
 class ActiveUpdateIntegrationError extends Error {
   constructor(

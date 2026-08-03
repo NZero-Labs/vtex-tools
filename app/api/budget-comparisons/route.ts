@@ -1,19 +1,19 @@
 import { getServerEnv } from "@/lib/env";
+import { compareAuditSubjects } from "@/modules/budget-audit/domain/compare-subjects";
+import { budgetRequestSchema } from "@/modules/budget-audit/domain/requests";
+import { toPublicSubject } from "@/modules/budget-audit/domain/subject";
 import {
-  budgetRequestSchema,
-  compareBudgets,
-  toPublicSubject,
-} from "@/modules/budget-comparison/domain/budget-comparison";
-import { getBudgetAuditPrincipal, recordBudgetAuditUse } from "@/modules/budget-comparison/data";
-import { addWeights } from "@/modules/budget-comparison/infrastructure/vtex-catalog-repository";
-import {
-  BudgetIntegrationError,
-  fetchBudget,
-} from "@/modules/budget-comparison/infrastructure/vtex-budget-repository";
+  getBudgetAuditPrincipal,
+  recordBudgetAuditUse,
+} from "@/modules/budget-audit/data";
+import { addWeights } from "@/modules/budget-audit/infrastructure/vtex-catalog-repository";
+import { BudgetIntegrationError } from "@/modules/budget-audit/infrastructure/vtex-integration-error";
+import { fetchBudget } from "@/modules/budget-audit/infrastructure/vtex-budget-repository";
 
 export async function POST(request: Request) {
   const access = await getBudgetAuditPrincipal();
-  if (!access.ok) return Response.json({ error: access.error }, { status: access.status });
+  if (!access.ok)
+    return Response.json({ error: access.error }, { status: access.status });
 
   const parsed = budgetRequestSchema.safeParse(
     await request.json().catch(() => null),
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       budgets,
       comparisons: budgets
         .slice(1)
-        .map((budget) => compareBudgets(baseline, budget)),
+        .map((budget) => compareAuditSubjects(baseline, budget)),
     });
   } catch (error) {
     if (error instanceof BudgetIntegrationError)

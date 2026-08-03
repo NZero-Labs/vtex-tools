@@ -1,6 +1,6 @@
 # VTEX Tools
 
-Hub interno da Amara Net Zero para operações VTEX. O primeiro módulo compara de dois a cinco orçamentos e destaca divergências de itens, valores, descontos, frete e vendedores.
+Hub interno da Amara Net Zero para operações VTEX. A Auditoria de Orçamentos compara orçamentos entre si, com um carrinho ou com versões históricas e destaca divergências de itens, valores, descontos, frete e vendedores.
 
 ## Stack
 

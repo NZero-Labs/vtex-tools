@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-export const ACTIVE_UPDATE_TOOL_ID = "active-update";
 export const UPLOAD_BATCH_SIZE = 500;
 export const PROCESS_BATCH_SIZE = 5;
 export const MAX_ATTEMPTS = 3;
@@ -13,6 +12,13 @@ export const activeUpdateRowSchema = z.object({
 });
 
 export type ActiveUpdateRow = z.infer<typeof activeUpdateRowSchema>;
+
+export type ActiveUpdateResult = {
+  status: "updated" | "unchanged" | "failed";
+  code: string;
+  message: string;
+  attempts: number;
+};
 
 export type ActiveUpdateJobDto = {
   id: string;

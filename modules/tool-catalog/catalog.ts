@@ -15,10 +15,15 @@ export type ToolDefinition = {
   order: number;
 };
 
+export const TOOL_IDS = {
+  activeUpdate: "active-update",
+  budgetAudit: "budget-comparison",
+} as const;
+
 export const toolCatalog = [
   {
-    id: "active-update",
-    name: "Atualizar Ativa",
+    id: TOOL_IDS.activeUpdate,
+    name: "Atualizar ativo",
     description: "Atualize o uso de cupom de clientes em massa por CSV.",
     route: "/ferramentas/atualizar-ativo",
     icon: "user-check",
@@ -29,7 +34,7 @@ export const toolCatalog = [
     order: 20,
   },
   {
-    id: "budget-comparison",
+    id: TOOL_IDS.budgetAudit,
     name: "Auditoria de Orçamentos",
     description: "Compare propostas, carrinhos e versões históricas da VTEX.",
     route: "/ferramentas/auditoria-orcamentos",

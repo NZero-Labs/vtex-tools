@@ -5,10 +5,11 @@ import { and, asc, count, desc, eq, getTableColumns, gt, inArray, lt, or, sql } 
 import { hasCapability } from "@/lib/auth/permissions";
 import { getCurrentPrincipal } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import { activeUpdateItem, activeUpdateJob, recentTool, user } from "@/lib/db/schema";
-import { getToolAccess } from "@/modules/tool-catalog/data";
-import { ACTIVE_UPDATE_TOOL_ID, HISTORY_PAGE_SIZE, maskCnpj, maskEmail, PROCESS_BATCH_SIZE, type ActiveUpdateRow } from "./domain/active-update";
-import type { ActiveUpdateResult } from "./infrastructure/vtex-active-update-repository";
+import { activeUpdateItem, activeUpdateJob, user } from "@/lib/db/schema";
+import { TOOL_IDS } from "@/modules/tool-catalog/catalog";
+import { getToolAccess, recordToolUse } from "@/modules/tool-catalog/data";
+import { HISTORY_PAGE_SIZE, maskCnpj, maskEmail, PROCESS_BATCH_SIZE, type ActiveUpdateRow } from "./domain/active-update";
+import type { ActiveUpdateResult } from "./domain/active-update";
 
 export type ActiveUpdatePrincipal = NonNullable<Awaited<ReturnType<typeof getCurrentPrincipal>>>;
 export type ActiveUpdateJobStatus = "uploading" | "ready" | "running" | "paused" | "completed" | "failed";
@@ -20,7 +21,7 @@ export async function getActiveUpdatePrincipal(): Promise<
   const principal = await getCurrentPrincipal();
   if (!principal) return { ok: false, status: 401, error: "Sessão expirada. Entre novamente." };
   if (!hasCapability(principal, "active:update")) return { ok: false, status: 403, error: "Acesso negado." };
-  if (!(await getToolAccess(principal, ACTIVE_UPDATE_TOOL_ID)).allowed) {
+  if (!(await getToolAccess(principal, TOOL_IDS.activeUpdate)).allowed) {
     return { ok: false, status: 403, error: "Esta ferramenta não está disponível para sua conta." };
   }
   return { ok: true, principal };
@@ -37,14 +38,7 @@ export async function createActiveUpdateJob(principal: ActiveUpdatePrincipal, fi
     expiresAt: expiresIn90Days(),
   }).returning({ id: activeUpdateJob.id, status: activeUpdateJob.status });
 
-  await db.insert(recentTool).values({
-    userId: principal.id,
-    toolId: ACTIVE_UPDATE_TOOL_ID,
-    usedAt: new Date(),
-  }).onConflictDoUpdate({
-    target: [recentTool.userId, recentTool.toolId],
-    set: { usedAt: new Date() },
-  });
+  await recordToolUse(principal.id, TOOL_IDS.activeUpdate);
   return job;
 }
 

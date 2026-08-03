@@ -3,7 +3,7 @@ import "server-only";
 import { z } from "zod";
 
 import type { ServerEnv } from "@/lib/env";
-import type { NormalizedSubject, WeightSummary } from "../domain/budget-comparison";
+import type { NormalizedSubject, WeightSummary } from "../domain/subject";
 
 const skuSchema = z.object({ PackagedWeightKg: z.number().nullish(), WeightKg: z.number().nullish() }).passthrough();
 const fixtureWeights: Record<string, number> = { "31001": 28.5, "42002": 18, "53003": 4.2, "64004": 6.5 };
