@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   BookOpenCheck,
   FileDiff,
   Grid2X2,
   Heart,
   KeyRound,
+  LoaderCircle,
   LogOut,
   Settings,
   ShieldCheck,
@@ -28,6 +31,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 import type { Role } from "@/lib/auth/permissions";
@@ -46,10 +50,24 @@ const adminItems = [
   { href: "/admin/auditoria", label: "Auditoria", icon: BookOpenCheck },
 ];
 
+type NavigationItem = (typeof primaryItems)[number];
+
+function getActiveHref(items: NavigationItem[], pathname: string) {
+  const exactMatch = items.find((item) => item.href === pathname);
+  if (exactMatch) return exactMatch.href;
+
+  return items
+    .filter((item) => pathname.startsWith(`${item.href}/`))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
+}
+
 export function AppSidebar({ user }: { user: { name: string; email: string; role: Role } }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { isMobile, setOpenMobile } = useSidebar();
+  const [pendingHref, setPendingHref] = useState<string>();
   const initials = user.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+  const visiblePendingHref = pendingHref === pathname ? undefined : pendingHref;
 
   async function signOut() {
     await authClient.signOut();
@@ -57,34 +75,55 @@ export function AppSidebar({ user }: { user: { name: string; email: string; role
     router.refresh();
   }
 
-  const menu = (items: typeof primaryItems) => (
-    <SidebarMenu>
-      {items.map(({ href, label, icon: Icon }) => {
-        const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(`${href}/`));
+  function handleNavigation(href: string) {
+    if (href === pathname) return;
+    setPendingHref(href);
+    if (isMobile) setOpenMobile(false);
+  }
 
-        return (
-          <SidebarMenuItem key={href}>
-            <SidebarMenuButton
-              render={<Link href={href} aria-current={isActive ? "page" : undefined} />}
-              isActive={isActive}
-              tooltip={label}
-              className="h-10 px-3"
-            >
-              <Icon />
-              <span>{label}</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        );
-      })}
-    </SidebarMenu>
-  );
+  const menu = (items: NavigationItem[]) => {
+    const activeHref = getActiveHref(items, pathname);
+
+    return (
+      <SidebarMenu>
+        {items.map(({ href, label, icon: Icon }) => {
+          const isActive = activeHref === href;
+          const isPending = visiblePendingHref === href;
+
+          return (
+            <SidebarMenuItem key={href}>
+              <SidebarMenuButton
+                render={<Link href={href} prefetch aria-label={label} aria-current={isActive ? "page" : undefined} aria-busy={isPending || undefined} />}
+                isActive={isActive}
+                tooltip={label}
+                onClick={() => handleNavigation(href)}
+                onMouseEnter={() => router.prefetch(href)}
+                onFocus={() => router.prefetch(href)}
+                className={isPending ? "text-sidebar-foreground/70" : undefined}
+              >
+                {isPending ? <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden /> : <Icon />}
+                <span>{label}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          );
+        })}
+      </SidebarMenu>
+    );
+  };
 
   return (
     <Sidebar collapsible="icon" variant="inset">
-      <SidebarHeader className="p-4 pb-2 group-data-[collapsible=icon]:p-2">
-        <Link href="/dashboard" className="flex h-12 items-center overflow-hidden rounded-lg px-1 focus-visible:outline-2 focus-visible:outline-sidebar-ring">
-          <BrandLogo className="w-40 shrink-0 brightness-0 invert group-data-[collapsible=icon]:hidden" />
-          <span className="hidden size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary font-heading text-xl font-bold text-sidebar-primary-foreground group-data-[collapsible=icon]:flex">V</span>
+      <SidebarHeader className="p-3 pb-2 group-data-[collapsible=icon]:p-2">
+        <Link href="/dashboard" className="flex h-16 items-center justify-start overflow-hidden rounded-lg px-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidebar-ring group-data-[collapsible=icon]:h-12 group-data-[collapsible=icon]:justify-center">
+          <BrandLogo className="h-auto w-[8.5rem] max-w-full shrink-0 object-left brightness-0 invert group-data-[collapsible=icon]:hidden" />
+          <Image
+            src="/favicon.ico"
+            alt="Amara Net Zero"
+            width={40}
+            height={40}
+            unoptimized
+            className="hidden size-10 shrink-0 rounded-xl object-contain group-data-[collapsible=icon]:block"
+          />
         </Link>
       </SidebarHeader>
       <SidebarContent>
@@ -102,7 +141,7 @@ export function AppSidebar({ user }: { user: { name: string; email: string; role
       <SidebarFooter className="border-t border-sidebar-border p-3">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton render={<Link href="/perfil" />} size="lg" tooltip="Perfil e preferências">
+            <SidebarMenuButton render={<Link href="/perfil" aria-label="Perfil e preferências" />} size="lg" tooltip="Perfil e preferências" onClick={() => isMobile && setOpenMobile(false)}>
               <Avatar className="size-8 rounded-lg"><AvatarFallback className="rounded-lg bg-sidebar-accent text-xs text-sidebar-accent-foreground">{initials}</AvatarFallback></Avatar>
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-medium">{user.name}</span>
@@ -111,7 +150,7 @@ export function AppSidebar({ user }: { user: { name: string; email: string; role
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={signOut} tooltip="Sair"><LogOut /><span>Sair</span></SidebarMenuButton>
+            <SidebarMenuButton onClick={signOut} aria-label="Sair" tooltip="Sair"><LogOut /><span>Sair</span></SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

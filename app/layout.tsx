@@ -8,6 +8,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: { default: "VTEX Tools", template: "%s · VTEX Tools" },
   description: "Ferramentas internas VTEX da Amara Net Zero.",
+  icons: { icon: "/favicon.ico", shortcut: "/favicon.ico" },
   robots: { index: false, follow: false },
 };
 
