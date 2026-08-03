@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { PageHeader } from "@/components/authenticated/page-header";
 import { FeedbackAlert } from "@/components/feedback-alert";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,6 +42,7 @@ export default async function ProfilePage({
           <CardHeader>
             <div className="mb-4 flex flex-wrap items-center gap-4">
               <Avatar className="size-14">
+                <AvatarImage src={principal.image ?? undefined} alt="" />
                 <AvatarFallback className="bg-accent text-accent-foreground text-lg">{initials}</AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">

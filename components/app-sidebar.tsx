@@ -17,7 +17,7 @@ import {
   Users,
 } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BrandLogo } from "@/components/brand-logo";
 import {
   Sidebar,
@@ -61,7 +61,7 @@ function getActiveHref(items: NavigationItem[], pathname: string) {
     .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 }
 
-export function AppSidebar({ user }: { user: { name: string; email: string; role: Role } }) {
+export function AppSidebar({ user }: { user: { name: string; email: string; image: string | null; role: Role } }) {
   const pathname = usePathname();
   const router = useRouter();
   const { isMobile, setOpenMobile } = useSidebar();
@@ -115,7 +115,7 @@ export function AppSidebar({ user }: { user: { name: string; email: string; role
     <Sidebar collapsible="icon" variant="inset">
       <SidebarHeader className="p-3 pb-2 group-data-[collapsible=icon]:p-2">
         <Link href="/dashboard" className="flex h-16 items-center justify-start overflow-hidden rounded-lg px-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidebar-ring group-data-[collapsible=icon]:h-12 group-data-[collapsible=icon]:justify-center">
-          <BrandLogo className="h-auto w-[8.5rem] max-w-full shrink-0 object-left brightness-0 invert group-data-[collapsible=icon]:hidden" />
+          <BrandLogo className="h-auto w-[8.5rem] max-w-full shrink-0 object-left dark:brightness-0 dark:invert group-data-[collapsible=icon]:hidden" />
           <Image
             src="/favicon.ico"
             alt="Amara Net Zero"
@@ -142,7 +142,10 @@ export function AppSidebar({ user }: { user: { name: string; email: string; role
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton render={<Link href="/perfil" aria-label="Perfil e preferências" />} size="lg" tooltip="Perfil e preferências" onClick={() => isMobile && setOpenMobile(false)}>
-              <Avatar className="size-8 rounded-lg"><AvatarFallback className="rounded-lg bg-sidebar-accent text-xs text-sidebar-accent-foreground">{initials}</AvatarFallback></Avatar>
+              <Avatar className="size-8 rounded-lg">
+                <AvatarImage src={user.image ?? undefined} alt="" className="rounded-lg" />
+                <AvatarFallback className="rounded-lg bg-sidebar-accent text-xs text-sidebar-accent-foreground">{initials}</AvatarFallback>
+              </Avatar>
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-medium">{user.name}</span>
                 <span className="block truncate text-xs text-sidebar-foreground/60">{user.email}</span>

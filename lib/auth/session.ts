@@ -6,7 +6,14 @@ import { type Capability, hasCapability, type Principal, type Role } from "./per
 
 const roles = new Set<Role>(["VISITOR", "EMPLOYEE", "ADMIN"]);
 
-export async function getCurrentPrincipal(): Promise<(Principal & { id: string; name: string; email: string }) | null> {
+export type CurrentPrincipal = Principal & {
+  id: string;
+  name: string;
+  email: string;
+  image: string | null;
+};
+
+export async function getCurrentPrincipal(): Promise<CurrentPrincipal | null> {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session || !roles.has(session.user.role as Role)) return null;
 
@@ -14,6 +21,7 @@ export async function getCurrentPrincipal(): Promise<(Principal & { id: string; 
     id: session.user.id,
     name: session.user.name,
     email: session.user.email,
+    image: session.user.image ?? null,
     role: session.user.role as Role,
     active: !session.user.banned,
   };
