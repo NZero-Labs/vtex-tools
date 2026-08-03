@@ -13,7 +13,7 @@ import { adminAuditLog, session, toolPermission, toolState, user } from "@/lib/d
 import { findTool } from "@/modules/tool-catalog/catalog";
 import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from "@/modules/authentication/domain/password-policy";
 
-const roleSchema = z.enum(["EMPLOYEE", "ADMIN"]);
+const roleSchema = z.enum(["VISITOR", "EMPLOYEE", "ADMIN"]);
 const toolStatusSchema = z.enum(["available", "beta", "maintenance", "coming-soon"]);
 
 const go = (path: string, kind: "success" | "error", message: string): never => redirect(`${path}?${kind}=${encodeURIComponent(message)}`);

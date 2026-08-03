@@ -1,4 +1,4 @@
-export type Role = "EMPLOYEE" | "ADMIN"
+export type Role = "VISITOR" | "EMPLOYEE" | "ADMIN"
 
 export type Capability =
   | "dashboard:view"
@@ -14,6 +14,7 @@ export type Principal = {
 }
 
 const roleCapabilities: Record<Role, ReadonlySet<Capability>> = {
+  VISITOR: new Set(),
   EMPLOYEE: new Set(["dashboard:view", "budget:compare", "active:update"]),
   ADMIN: new Set([
     "dashboard:view",

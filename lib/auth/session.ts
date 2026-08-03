@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { type Capability, hasCapability, type Principal, type Role } from "./permissions";
 
-const roles = new Set<Role>(["EMPLOYEE", "ADMIN"]);
+const roles = new Set<Role>(["VISITOR", "EMPLOYEE", "ADMIN"]);
 
 export async function getCurrentPrincipal(): Promise<(Principal & { id: string; name: string; email: string }) | null> {
   const session = await auth.api.getSession({ headers: await headers() });

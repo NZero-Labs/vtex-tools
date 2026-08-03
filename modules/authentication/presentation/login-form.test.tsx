@@ -1,32 +1,35 @@
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LoginForm } from "./login-form";
 
-const { refresh, replace, signInEmail } = vi.hoisted(() => ({
-  refresh: vi.fn(),
-  replace: vi.fn(),
-  signInEmail: vi.fn(),
-}));
+const { signInSocial } = vi.hoisted(() => ({ signInSocial: vi.fn() }));
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh, replace }) }));
-vi.mock("@/lib/auth-client", () => ({ authClient: { signIn: { email: signInEmail } } }));
+vi.mock("@/lib/auth-client", () => ({ authClient: { signIn: { social: signInSocial } } }));
 
 describe("LoginForm", () => {
   beforeEach(() => vi.clearAllMocks());
+  afterEach(cleanup);
 
-  it("trata falhas de rede sem deixar uma rejeição não capturada", async () => {
-    signInEmail.mockRejectedValueOnce(new TypeError("Failed to fetch"));
-    const user = userEvent.setup();
+  it("oferece somente login com Microsoft", () => {
     render(<LoginForm destination="/dashboard" />);
 
-    await user.type(screen.getByLabelText("E-mail"), "user@example.com");
-    await user.type(screen.getByLabelText("Senha"), "password123");
-    await user.click(screen.getByRole("button", { name: "Entrar" }));
+    expect(screen.getByRole("button", { name: "Continuar com Microsoft" })).toBeInTheDocument();
+    expect(screen.queryByLabelText("E-mail")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Senha")).not.toBeInTheDocument();
+  });
 
-    expect(await screen.findByText("Não foi possível conectar ao serviço de autenticação. Tente novamente.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Entrar" })).toBeEnabled();
-    expect(replace).not.toHaveBeenCalled();
+  it("inicia o login com a Microsoft usando o destino informado", async () => {
+    signInSocial.mockResolvedValueOnce({ data: {} });
+    const user = userEvent.setup();
+    render(<LoginForm destination="/ferramentas" />);
+
+    await user.click(screen.getByRole("button", { name: "Continuar com Microsoft" }));
+
+    expect(signInSocial).toHaveBeenCalledWith({
+      provider: "microsoft",
+      callbackURL: "/ferramentas",
+    });
   });
 });
