@@ -13,13 +13,16 @@ import {
   fetchBudgetVersions,
 } from "@/modules/budget-audit/infrastructure/vtex-budget-versions-repository";
 import { addWeights } from "@/modules/budget-audit/infrastructure/vtex-catalog-repository";
+import { saveComparisonHistory } from "@/modules/budget-audit/history";
+import type { ComparisonReport } from "@/modules/budget-audit/presentation/export-report";
 
 export async function POST(request: Request) {
+  const body = request.json().catch(() => null);
   const access = await getBudgetAuditPrincipal();
   if (!access.ok)
     return Response.json({ error: access.error }, { status: access.status });
   const parsed = budgetVersionsRequestSchema.safeParse(
-    await request.json().catch(() => null),
+    await body,
   );
   if (!parsed.success)
     return Response.json(
@@ -47,35 +50,43 @@ export async function POST(request: Request) {
       });
     }
     const versionId = parsed.data.versionId;
-    const versionRecord = await fetchBudgetVersion(
-      parsed.data.budgetId,
-      currentRecord.documentId,
-      versionId,
-      env,
-    );
+    const [versionRecord, versions] = await Promise.all([
+      fetchBudgetVersion(
+        parsed.data.budgetId,
+        currentRecord.documentId,
+        versionId,
+        env,
+      ),
+      fetchBudgetVersions(parsed.data.budgetId, currentRecord.documentId, env),
+    ]);
     const [current, version] = await addWeights(
       [toPublicSubject(currentRecord), toPublicSubject(versionRecord)],
       env,
     );
     if (!current || !version)
       throw new BudgetIntegrationError("Dados da comparação ausentes", 502);
-    const versions = await fetchBudgetVersions(
-      parsed.data.budgetId,
-      currentRecord.documentId,
-      env,
-    );
     const versionMetadata = versions.find((item) => item.id === versionId) ?? {
       id: versionId,
       author: "Autor não informado",
       date: null,
     };
-    await recordBudgetAuditUse(access.principal);
-    return Response.json({
+    const comparison = compareAuditSubjects(current, version);
+    const report: ComparisonReport = {
       source: env.USE_VTEX_FIXTURES ? "fixture" : "vtex",
+      budgets: [current, version],
+      comparisons: [comparison],
+    };
+    const [comparisonId] = await Promise.all([
+      saveComparisonHistory(access.principal.id, report),
+      recordBudgetAuditUse(access.principal),
+    ]);
+    return Response.json({
+      source: report.source,
       current,
       version,
-      comparison: compareAuditSubjects(current, version),
+      comparison,
       versionMetadata,
+      comparisonId,
     });
   } catch (error) {
     if (error instanceof BudgetIntegrationError)

@@ -47,6 +47,14 @@ async function ownedJob(userId: string, jobId: string) {
   return job;
 }
 
+async function jobWithOwner(jobId: string) {
+  const [job] = await db.select({
+    ...getTableColumns(activeUpdateJob),
+    ownerName: user.name,
+  }).from(activeUpdateJob).innerJoin(user, eq(activeUpdateJob.userId, user.id)).where(eq(activeUpdateJob.id, jobId)).limit(1);
+  return job;
+}
+
 export async function appendActiveUpdateItems(principal: ActiveUpdatePrincipal, jobId: string, rows: ActiveUpdateRow[]) {
   const job = await ownedJob(principal.id, jobId);
   if (!job) return { ok: false as const, status: 404 as const, error: "Processamento não encontrado." };
@@ -113,10 +121,7 @@ function jobDto(job: typeof activeUpdateJob.$inferSelect & { ownerName?: string 
 }
 
 export async function getActiveUpdateJob(principal: ActiveUpdatePrincipal, jobId: string) {
-  const [job] = await db.select({
-    ...getTableColumns(activeUpdateJob),
-    ownerName: user.name,
-  }).from(activeUpdateJob).innerJoin(user, eq(activeUpdateJob.userId, user.id)).where(eq(activeUpdateJob.id, jobId)).limit(1);
+  const job = await jobWithOwner(jobId);
   if (!job || (principal.role !== "ADMIN" && job.userId !== principal.id)) return null;
 
   const items = await db.select({
@@ -141,26 +146,33 @@ export async function getActiveUpdateJob(principal: ActiveUpdatePrincipal, jobId
   };
 }
 
+export async function getActiveUpdateProgress(principal: ActiveUpdatePrincipal, jobId: string) {
+  const job = await jobWithOwner(jobId);
+  if (!job || (principal.role !== "ADMIN" && job.userId !== principal.id)) return null;
+  return jobDto(job, principal.id);
+}
+
 export async function listActiveUpdateJobs(principal: ActiveUpdatePrincipal, ownerId?: string, page = 0) {
   const requestedOwner = principal.role === "ADMIN" ? ownerId : principal.id;
-  const rows = await db.select({
-    ...getTableColumns(activeUpdateJob),
-    ownerName: user.name,
-  }).from(activeUpdateJob).innerJoin(user, eq(activeUpdateJob.userId, user.id))
-    .where(requestedOwner ? eq(activeUpdateJob.userId, requestedOwner) : undefined)
-    .orderBy(desc(activeUpdateJob.createdAt))
-    .limit(HISTORY_PAGE_SIZE + 1)
-    .offset(page * HISTORY_PAGE_SIZE);
+  const [rows, collaborators, [activeJob]] = await Promise.all([
+    db.select({
+      ...getTableColumns(activeUpdateJob),
+      ownerName: user.name,
+    }).from(activeUpdateJob).innerJoin(user, eq(activeUpdateJob.userId, user.id))
+      .where(requestedOwner ? eq(activeUpdateJob.userId, requestedOwner) : undefined)
+      .orderBy(desc(activeUpdateJob.createdAt))
+      .limit(HISTORY_PAGE_SIZE + 1)
+      .offset(page * HISTORY_PAGE_SIZE),
+    principal.role === "ADMIN"
+      ? db.selectDistinct({ id: user.id, name: user.name }).from(activeUpdateJob).innerJoin(user, eq(activeUpdateJob.userId, user.id)).orderBy(asc(user.name))
+      : Promise.resolve([]),
+    db.select({ id: activeUpdateJob.id }).from(activeUpdateJob).where(and(
+      eq(activeUpdateJob.userId, principal.id),
+      inArray(activeUpdateJob.status, ["uploading", "running", "paused"]),
+    )).orderBy(desc(activeUpdateJob.createdAt)).limit(1),
+  ]);
   const hasMore = rows.length > HISTORY_PAGE_SIZE;
   const jobs = hasMore ? rows.slice(0, HISTORY_PAGE_SIZE) : rows;
-
-  const collaborators = principal.role === "ADMIN"
-    ? await db.selectDistinct({ id: user.id, name: user.name }).from(activeUpdateJob).innerJoin(user, eq(activeUpdateJob.userId, user.id)).orderBy(asc(user.name))
-    : [];
-  const [activeJob] = await db.select({ id: activeUpdateJob.id }).from(activeUpdateJob).where(and(
-    eq(activeUpdateJob.userId, principal.id),
-    inArray(activeUpdateJob.status, ["uploading", "running", "paused"]),
-  )).orderBy(desc(activeUpdateJob.createdAt)).limit(1);
   return { jobs: jobs.map((job) => jobDto(job, principal.id)), collaborators, activeJobId: activeJob?.id ?? null, hasMore, page };
 }
 

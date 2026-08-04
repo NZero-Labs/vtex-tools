@@ -42,10 +42,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import type {
-  ItemDifference,
-  NormalizedSubject,
-  SubjectComparison,
+import {
+  subjectDisplayName,
+  type ItemDifference,
+  type NormalizedSubject,
+  type SubjectComparison,
 } from "../domain/subject";
 import { impactLabels, typeLabels } from "./export-report";
 
@@ -97,6 +98,8 @@ export function ComparisonItems({
   baseline: NormalizedSubject;
   candidate: NormalizedSubject;
 }) {
+  const baselineLabel = subjectDisplayName(baseline, "base");
+  const candidateLabel = subjectDisplayName(candidate, "comparison");
   const [query, setQuery] = useState("");
   const [type, setType] = useState("all");
   const [impact, setImpact] = useState("all");
@@ -136,7 +139,7 @@ export function ComparisonItems({
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(16rem,1fr)_12rem_11rem_auto_auto]">
-      <InputGroup className="h-10">
+      <InputGroup className="h-11">
         <InputGroupAddon>
           <Search aria-hidden />
         </InputGroupAddon>
@@ -151,7 +154,7 @@ export function ComparisonItems({
         value={type}
         onValueChange={(value) => setType(value ?? "all")}
       >
-        <SelectTrigger className="h-10 w-full" aria-label="Filtrar por tipo de diferença">
+        <SelectTrigger className="h-11 w-full" aria-label="Filtrar por tipo de diferença">
           <Filter aria-hidden />
           <SelectValue />
         </SelectTrigger>
@@ -170,7 +173,7 @@ export function ComparisonItems({
         value={impact}
         onValueChange={(value) => setImpact(value ?? "all")}
       >
-        <SelectTrigger className="h-10 w-full" aria-label="Filtrar por importância">
+        <SelectTrigger className="h-11 w-full" aria-label="Filtrar por importância">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -186,7 +189,7 @@ export function ComparisonItems({
           </SelectGroup>
         </SelectContent>
       </Select>
-      <div className="flex h-10 items-center justify-between gap-3 rounded-lg border px-3 text-sm">
+      <div className="flex h-11 items-center justify-between gap-3 rounded-lg border px-3 text-sm">
         <label htmlFor="only-differences">Só diferenças</label>
         <Switch
           id="only-differences"
@@ -194,21 +197,21 @@ export function ComparisonItems({
           onCheckedChange={setOnlyDifferences}
         />
       </div>
-      <Button type="button" variant="ghost" className="h-10" onClick={clearFilters} disabled={!hasFilters}>
+      <Button type="button" variant="ghost" className="h-11" onClick={clearFilters} disabled={!hasFilters}>
         <RotateCcw data-icon="inline-start" /> Limpar
       </Button>
         </div>
 
     {items.length ? (
       <>
-        <div className="hidden overflow-hidden rounded-xl border lg:block">
+        <div className="hidden overflow-x-auto rounded-xl border xl:block">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Produto</TableHead>
                 <TableHead>Classificação</TableHead>
-                <TableHead>{baseline.id}</TableHead>
-                <TableHead>{candidate.id}</TableHead>
+                <TableHead>{baselineLabel}</TableHead>
+                <TableHead>{candidateLabel}</TableHead>
                 <TableHead className="text-right">Impacto</TableHead>
               </TableRow>
             </TableHeader>
@@ -243,7 +246,7 @@ export function ComparisonItems({
             </TableBody>
           </Table>
         </div>
-        <div className="grid gap-3 lg:hidden">
+        <div className="grid gap-3 xl:hidden">
           {items.map((item) => (
             <Card key={item.skuId} size="sm">
               <CardHeader>
@@ -255,13 +258,13 @@ export function ComparisonItems({
                 <div className="grid gap-3 text-sm sm:grid-cols-2">
                   <div className="rounded-lg bg-muted p-3">
                     <p className="text-muted-foreground mb-2 text-xs">
-                      Base · {baseline.id}
+                      {baselineLabel}
                     </p>
                     <ItemValues item={item.baseline} />
                   </div>
                   <div className="rounded-lg bg-muted p-3">
                     <p className="text-muted-foreground mb-2 text-xs">
-                      Comparado · {candidate.id}
+                      {candidateLabel}
                     </p>
                     <ItemValues item={item.candidate} />
                   </div>

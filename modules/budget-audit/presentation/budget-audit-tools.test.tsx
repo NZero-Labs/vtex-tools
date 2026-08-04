@@ -7,10 +7,14 @@ import { ComparisonResults } from "./comparison-report";
 import { BudgetVersionsTool } from "./budget-versions-tool";
 import type { ComparisonReport } from "./export-report";
 
+const router = vi.hoisted(() => ({ push: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => router }));
+
 afterEach(() => vi.restoreAllMocks());
 
 describe("ferramentas de auditoria", () => {
-  it("apresenta o diagnóstico e oculta itens sem alteração por padrão", () => {
+  it("apresenta o diagnóstico e oculta itens sem alteração por padrão", async () => {
+    const user = userEvent.setup();
     const subject = (id: string) => ({
       id,
       kind: "budget" as const,
@@ -44,15 +48,18 @@ describe("ferramentas de auditoria", () => {
 
     render(<ComparisonResults data={report} onReset={() => undefined} />);
 
-    expect(screen.getByText("Há divergências")).toBeInTheDocument();
+    expect(screen.getByText("Há diferenças para revisar")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Orçamento base × Orçamento comparado" })).toBeInTheDocument();
+    expect(screen.queryByText("BASE × CANDIDATO")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: "Itens e diferenças" }));
     expect(screen.getAllByText("Produto alterado")).not.toHaveLength(0);
     expect(screen.queryByText("Produto igual")).not.toBeInTheDocument();
   });
 
-  it("orienta a entrada de orçamento e OrderForm", () => {
+  it("orienta a entrada de orçamento e carrinho", () => {
     render(<BudgetCartTool />);
-    expect(screen.getByLabelText("Orçamento")).toBeInTheDocument();
-    expect(screen.getByLabelText("ID ou URL do carrinho")).toBeInTheDocument();
+    expect(screen.getByLabelText("Orçamento de referência")).toBeInTheDocument();
+    expect(screen.getByLabelText("Carrinho atual")).toBeInTheDocument();
   });
 
   it("exibe estado vazio quando o orçamento não possui versões", async () => {

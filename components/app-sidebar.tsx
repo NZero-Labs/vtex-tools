@@ -8,7 +8,7 @@ import {
   BookOpenCheck,
   FileDiff,
   Grid2X2,
-  Heart,
+  History,
   KeyRound,
   LoaderCircle,
   LogOut,
@@ -39,6 +39,7 @@ import type { Role } from "@/lib/auth/permissions";
 const primaryItems = [
   { href: "/dashboard", label: "Visão geral", icon: Grid2X2 },
   { href: "/ferramentas", label: "Ferramentas", icon: FileDiff },
+  { href: "/ferramentas/auditoria-orcamentos/historico", label: "Histórico de comparações", icon: History },
   // { href: "/favoritos", label: "Favoritos", icon: Heart },
 ];
 
@@ -104,18 +105,16 @@ export function AppSidebar({
               <SidebarMenuButton
                 render={
                   <Link
-                    href={href}
-                    prefetch
-                    aria-label={label}
-                    aria-current={isActive ? "page" : undefined}
-                    aria-busy={isPending || undefined}
+                  href={href}
+                    prefetch={href === pathname ? false : undefined}
+                  aria-label={label}
+                  aria-current={isActive ? "page" : undefined}
+                  aria-busy={isPending || undefined}
                   />
                 }
                 isActive={isActive}
                 tooltip={label}
                 onClick={() => handleNavigation(href)}
-                onMouseEnter={() => router.prefetch(href)}
-                onFocus={() => router.prefetch(href)}
                 className={isPending ? "text-sidebar-foreground/70" : undefined}
               >
                 {isPending ? (
@@ -140,6 +139,7 @@ export function AppSidebar({
       <SidebarHeader className="p-3 pb-2 group-data-[collapsible=icon]:p-2">
         <Link
           href="/dashboard"
+          prefetch={pathname !== "/dashboard"}
           className="flex h-16 items-center justify-start overflow-hidden rounded-lg px-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidebar-ring group-data-[collapsible=icon]:h-12 group-data-[collapsible=icon]:justify-center"
         >
           <BrandLogo className="h-auto w-[8.5rem] max-w-full shrink-0 object-left dark:brightness-0 dark:invert group-data-[collapsible=icon]:hidden" />

@@ -1,6 +1,7 @@
 export type Impact = "critical" | "high" | "medium" | "low" | "none";
 export type DifferenceType = "added" | "removed" | "changed" | "unchanged";
 export type SubjectKind = "budget" | "cart" | "version";
+export type SubjectPosition = "base" | "comparison";
 
 export type BudgetItem = {
   skuId: string;
@@ -42,6 +43,12 @@ export type NormalizedSubject = {
 
 export type BudgetRecord = NormalizedSubject & { documentId?: string; updatedAt?: string };
 
+export function subjectDisplayName(subject: Pick<NormalizedSubject, "kind">, position: SubjectPosition) {
+  if (subject.kind === "cart") return "Carrinho atual";
+  if (subject.kind === "version") return "Versão anterior";
+  return position === "base" ? "Orçamento base" : "Orçamento comparado";
+}
+
 export type ItemDifference = {
   skuId: string;
   name: string;
@@ -82,4 +89,3 @@ export function toPublicSubject(record: BudgetRecord): NormalizedSubject {
     weight: record.weight,
   };
 }
-

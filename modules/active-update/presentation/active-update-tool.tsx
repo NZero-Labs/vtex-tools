@@ -138,13 +138,14 @@ export function ActiveUpdateTool({
     const pump = async () => {
       while (!stopped) {
         try {
-          const next = await api<ActiveUpdateJobDetailsDto>(
+          const next = await api<ActiveUpdateJobDto>(
             `/api/active-updates/${activeJob.id}/process`,
             { method: "POST" },
           );
           if (stopped) return;
-          setActiveJob(next);
+          setActiveJob((current) => (current ? { ...current, ...next } : current));
           if (next.status !== "running") {
+            await loadJob(activeJob.id);
             await loadHistory(ownerId);
             return;
           }
@@ -173,6 +174,7 @@ export function ActiveUpdateTool({
     activeJob?.canControl,
     activeJob?.id,
     activeJob?.status,
+    loadJob,
     loadHistory,
     ownerId,
   ]);

@@ -1,13 +1,14 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { AlertTriangle, ArrowRight, CheckCircle2, ShoppingCart, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowRight, ShoppingCart, Trash2 } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
@@ -21,16 +22,11 @@ type CartResponse = {
   budget: NormalizedSubject;
   cart: NormalizedSubject;
   comparison: SubjectComparison;
+  comparisonId: string;
 };
 
-const auditedItems = [
-  "Itens, quantidades e vendedores",
-  "Preços, descontos e total",
-  "CEP, frete e todos os SLAs",
-  "Promoções, tags e peso",
-];
-
 export function BudgetCartTool() {
+  const router = useRouter();
   const [budgetId, setBudgetId] = useState("");
   const [orderForm, setOrderForm] = useState("");
   const [data, setData] = useState<ComparisonReport>();
@@ -58,6 +54,7 @@ export function BudgetCartTool() {
         throw new Error("error" in result ? result.error : "Falha na comparação");
       }
       setData({ source: result.source, budgets: [result.budget, result.cart], comparisons: [result.comparison] });
+      router.push(`/ferramentas/auditoria-orcamentos/historico/${result.comparisonId}`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Não foi possível concluir a comparação");
     } finally {
@@ -81,20 +78,22 @@ export function BudgetCartTool() {
           <div className="bg-accent text-accent-foreground mb-4 flex size-12 items-center justify-center rounded-2xl">
             <ShoppingCart className="size-6" aria-hidden />
           </div>
-          <Badge variant="outline" className="mb-1 w-fit">Entrada · etapa 1</Badge>
-          <CardTitle className="text-2xl">Orçamento e carrinho</CardTitle>
-          <CardDescription>O carrinho pode ser informado pelo ID ou por uma URL que contenha o orderFormId.</CardDescription>
+          <Badge variant="outline" className="mb-1 w-fit">Passo 1 de 2</Badge>
+          <CardTitle className="text-2xl">Confira o carrinho</CardTitle>
+          <CardDescription>Informe o orçamento e o carrinho que deseja conferir.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={submit} className="flex flex-col gap-5">
             <FieldGroup>
               <Field data-invalid={Boolean(error) || undefined}>
-                <FieldLabel htmlFor="budget-id">Orçamento</FieldLabel>
-                <Input id="budget-id" value={budgetId} onChange={(event) => setBudgetId(event.target.value)} placeholder="Ex.: DEMO-1001" required autoFocus className="h-11 font-mono" aria-invalid={Boolean(error) || undefined} />
+                <FieldLabel htmlFor="budget-id">Orçamento de referência</FieldLabel>
+                <FieldDescription>É com ele que o carrinho será comparado.</FieldDescription>
+                <Input id="budget-id" value={budgetId} onChange={(event) => setBudgetId(event.target.value)} placeholder="Digite o número do orçamento" required autoFocus className="h-11 font-mono" aria-invalid={Boolean(error) || undefined} />
               </Field>
               <Field data-invalid={Boolean(error) || undefined}>
-                <FieldLabel htmlFor="order-form">ID ou URL do carrinho</FieldLabel>
-                <Input id="order-form" value={orderForm} onChange={(event) => setOrderForm(event.target.value)} placeholder="Ex.: DEMO-CART-1001" required className="h-11 font-mono" aria-invalid={Boolean(error) || undefined} />
+                <FieldLabel htmlFor="order-form">Carrinho atual</FieldLabel>
+                <FieldDescription>Cole o ID ou a URL completa do carrinho VTEX.</FieldDescription>
+                <Input id="order-form" value={orderForm} onChange={(event) => setOrderForm(event.target.value)} placeholder="Cole o ID ou a URL do carrinho" required className="h-11 font-mono" aria-invalid={Boolean(error) || undefined} />
               </Field>
             </FieldGroup>
             {error ? (
@@ -108,7 +107,7 @@ export function BudgetCartTool() {
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <Button type="button" variant="ghost" onClick={reset} disabled={pending}><Trash2 data-icon="inline-start" /> Limpar</Button>
               <Button type="submit" disabled={pending}>
-                {pending ? <><Spinner data-icon="inline-start" /> Consultando VTEX…</> : <>Comparar com carrinho <ArrowRight data-icon="inline-end" /></>}
+                {pending ? <><Spinner data-icon="inline-start" /> Consultando carrinho…</> : <>Ver diferenças <ArrowRight data-icon="inline-end" /></>}
               </Button>
             </div>
           </form>
@@ -118,13 +117,17 @@ export function BudgetCartTool() {
       <aside>
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">O que será auditado</CardTitle>
-            <CardDescription>Uma leitura única antes de fechar o pedido.</CardDescription>
+            <CardTitle className="text-lg">Como funciona</CardTitle>
+            <CardDescription>Você verá só o que precisa revisar.</CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="flex flex-col gap-3 text-sm">
-              {auditedItems.map((item) => (
-                <li key={item} className="flex gap-2"><CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />{item}</li>
+              {[
+                ["1", "Escolha o orçamento de referência"],
+                ["2", "Informe o carrinho atual"],
+                ["3", "Revise as diferenças encontradas"],
+              ].map(([step, item]) => (
+                <li key={step} className="flex gap-3"><span className="bg-primary/10 text-primary flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold">{step}</span><span>{item}</span></li>
               ))}
             </ul>
           </CardContent>

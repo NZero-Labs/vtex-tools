@@ -9,14 +9,17 @@ import {
 import { addWeights } from "@/modules/budget-audit/infrastructure/vtex-catalog-repository";
 import { BudgetIntegrationError } from "@/modules/budget-audit/infrastructure/vtex-integration-error";
 import { fetchBudget } from "@/modules/budget-audit/infrastructure/vtex-budget-repository";
+import { saveComparisonHistory } from "@/modules/budget-audit/history";
+import type { ComparisonReport } from "@/modules/budget-audit/presentation/export-report";
 
 export async function POST(request: Request) {
+  const body = request.json().catch(() => null);
   const access = await getBudgetAuditPrincipal();
   if (!access.ok)
     return Response.json({ error: access.error }, { status: access.status });
 
   const parsed = budgetRequestSchema.safeParse(
-    await request.json().catch(() => null),
+    await body,
   );
   if (!parsed.success)
     return Response.json(
@@ -34,15 +37,19 @@ export async function POST(request: Request) {
     if (!baseline)
       throw new BudgetIntegrationError("Orçamento base ausente", 400);
 
-    await recordBudgetAuditUse(access.principal);
-
-    return Response.json({
+    const report: ComparisonReport = {
       source: env.USE_VTEX_FIXTURES ? "fixture" : "vtex",
       budgets,
       comparisons: budgets
         .slice(1)
         .map((budget) => compareAuditSubjects(baseline, budget)),
-    });
+    };
+    const [comparisonId] = await Promise.all([
+      saveComparisonHistory(access.principal.id, report),
+      recordBudgetAuditUse(access.principal),
+    ]);
+
+    return Response.json({ ...report, comparisonId });
   } catch (error) {
     if (error instanceof BudgetIntegrationError)
       return Response.json({ error: error.message }, { status: error.status });

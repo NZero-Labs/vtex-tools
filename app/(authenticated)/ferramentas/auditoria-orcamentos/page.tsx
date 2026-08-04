@@ -17,22 +17,22 @@ const flows = [
   {
     href: "/ferramentas/auditoria-orcamentos/orcamentos",
     icon: Files,
-    title: "Orçamento × Orçamento",
+    title: "Dois orçamentos",
     description:
-      "Compare de duas a cinco propostas e use a primeira como referência.",
+      "Compare propostas e descubra o que mudou entre elas.",
   },
   {
     href: "/ferramentas/auditoria-orcamentos/carrinho",
     icon: ShoppingCart,
-    title: "Orçamento × Carrinho",
+    title: "Orçamento e carrinho",
     description:
-      "Valide o orçamento contra um OrderForm antes de fechar o pedido.",
+      "Confira se o carrinho atual está igual ao orçamento.",
   },
   {
     href: "/ferramentas/auditoria-orcamentos/versoes",
     icon: History,
-    title: "Atual × Versão histórica",
-    description: "Revise o que mudou entre o documento atual e seu histórico.",
+    title: "Orçamento e versão anterior",
+    description: "Veja o que mudou entre o orçamento atual e uma versão anterior.",
   },
 ];
 
@@ -41,8 +41,8 @@ export default function BudgetAuditPage() {
     <div className="flex flex-col gap-8">
       <AuditPageHeader
         eyebrow="Auditoria VTEX"
-        title="Um ponto de partida para cada conferência."
-        description="Escolha a origem da comparação. Todos os relatórios usam os mesmos critérios de itens, valores, logística, promoções, tags e peso."
+        title="O que você quer comparar?"
+        description="Escolha uma opção para começar. A ferramenta mostra as diferenças importantes e explica onde revisar."
       />
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" aria-label="Tipos de auditoria">
         {flows.map(({ href, icon: Icon, title, description }) => (
@@ -62,7 +62,7 @@ export default function BudgetAuditPage() {
                 </CardDescription>
               </CardHeader>
               <CardFooter className="mt-auto text-sm font-semibold text-primary">
-                Iniciar auditoria <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+                Começar comparação <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
               </CardFooter>
             </Card>
           </Link>

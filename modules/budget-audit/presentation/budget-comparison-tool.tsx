@@ -1,10 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import {
   AlertTriangle,
   ArrowRight,
-  CheckCircle2,
   FileDiff,
   FileSpreadsheet,
   Plus,
@@ -22,7 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,6 +32,7 @@ import { ComparisonResults } from "./comparison-report";
 import type { ComparisonReport } from "./export-report";
 
 export function BudgetComparisonTool() {
+  const router = useRouter();
   const [budgetIds, setBudgetIds] = useState(["", ""]);
   const [data, setData] = useState<ComparisonReport>();
   const [error, setError] = useState("");
@@ -48,7 +49,7 @@ export function BudgetComparisonTool() {
     const parsed = budgetRequestSchema.safeParse({ budgetIds });
     if (!parsed.success)
       return setError(
-        parsed.error.issues[0]?.message ?? "Revise os identificadores",
+        parsed.error.issues[0]?.message ?? "Revise os números informados",
       );
 
     setPending(true);
@@ -66,7 +67,10 @@ export function BudgetComparisonTool() {
             ? String(result.error)
             : "Falha na comparação",
         );
-      setData(result as ComparisonReport);
+      const saved = result as ComparisonReport & { comparisonId?: string };
+      if (!saved.comparisonId) throw new Error("A comparação foi concluída, mas não recebeu um link.");
+      setData(saved);
+      router.push(`/ferramentas/auditoria-orcamentos/historico/${saved.comparisonId}`);
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -93,11 +97,11 @@ export function BudgetComparisonTool() {
           <div className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
             <FileDiff className="size-6" aria-hidden />
           </div>
-          <Badge variant="outline" className="mb-1 w-fit">Entrada · etapa 1</Badge>
-          <CardTitle className="text-2xl">Selecione os orçamentos</CardTitle>
+          <Badge variant="outline" className="mb-1 w-fit">Passo 1 de 2</Badge>
+          <CardTitle className="text-2xl">Digite os orçamentos</CardTitle>
           <CardDescription className="max-w-2xl leading-6">
-            Informe de 2 a 5 identificadores. O primeiro será usado como base em
-            todas as comparações.
+            Use o primeiro como referência. Depois, adicione de um a quatro
+            orçamentos para comparar.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -106,14 +110,15 @@ export function BudgetComparisonTool() {
               {budgetIds.map((budgetId, index) => (
                 <Field key={index}>
                   <FieldLabel htmlFor={`budget-${index}`}>
-                    {index === 0 ? "Orçamento base" : `Orçamento ${index + 1}`}
+                    {index === 0 ? "Orçamento de referência" : `Orçamento para comparar ${index + 1}`}
                   </FieldLabel>
+                  {index === 0 ? <FieldDescription>É com ele que os outros serão comparados.</FieldDescription> : null}
                   <div className="flex gap-2">
                     <Input
                       id={`budget-${index}`}
                       value={budgetId}
                       onChange={(event) => update(index, event.target.value)}
-                      placeholder={index === 0 ? "Ex.: 100234" : "Ex.: 100235"}
+                      placeholder={index === 0 ? "Digite o número do orçamento" : "Digite outro número"}
                       required
                       autoFocus={index === 0}
                       className="h-11 min-w-0 font-mono"
@@ -148,7 +153,7 @@ export function BudgetComparisonTool() {
                 className="self-start"
                 onClick={() => setBudgetIds((current) => [...current, ""])}
               >
-                <Plus data-icon="inline-start" /> Adicionar orçamento
+                <Plus data-icon="inline-start" /> Adicionar outro orçamento
               </Button>
             ) : null}
             {error ? (
@@ -175,7 +180,7 @@ export function BudgetComparisonTool() {
                   </>
                 ) : (
                   <>
-                    Comparar orçamentos <ArrowRight data-icon="inline-end" />
+                    Ver diferenças <ArrowRight data-icon="inline-end" />
                   </>
                 )}
               </Button>
@@ -187,22 +192,21 @@ export function BudgetComparisonTool() {
       <aside className="flex flex-col gap-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Leitura completa</CardTitle>
+          <CardTitle className="text-lg">Como funciona</CardTitle>
             <CardDescription>
-              O relatório cruza os pontos que mais impactam uma aprovação.
+              Você verá só o que precisa revisar.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="flex flex-col gap-3 text-sm">
               {[
-                "Produtos, SKUs e quantidades",
-                "Preços, descontos e totais",
-                "Frete, CEP e SLAs",
-                "Promoções, tags, peso e vendedores",
-              ].map((item) => (
-                <li key={item} className="flex gap-2">
-                  <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
-                  {item}
+                ["1", "Escolha o orçamento de referência"],
+                ["2", "Adicione os orçamentos para comparar"],
+                ["3", "Revise as diferenças encontradas"],
+              ].map(([step, item]) => (
+                <li key={step} className="flex gap-3">
+                  <span className="bg-primary/10 text-primary flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold">{step}</span>
+                  <span>{item}</span>
                 </li>
               ))}
             </ul>
@@ -210,10 +214,8 @@ export function BudgetComparisonTool() {
         </Card>
         <Alert>
           <FileSpreadsheet />
-          <AlertTitle>Relatório pronto para compartilhar</AlertTitle>
-          <AlertDescription>
-            Ao concluir, exporte todos os resultados em CSV ou JSON.
-          </AlertDescription>
+          <AlertTitle>Precisa enviar o resultado?</AlertTitle>
+          <AlertDescription>Depois da comparação, você poderá baixar uma planilha ou um arquivo JSON.</AlertDescription>
         </Alert>
       </aside>
 

@@ -10,7 +10,7 @@ export default function BudgetCartPage() {
       <AuditPageHeader
         eyebrow="Auditoria de Orçamentos"
         title="Confira a proposta contra o carrinho."
-        description="Compare o orçamento salvo no Master Data com o OrderForm atual da VTEX."
+        description="Compare o orçamento salvo com o carrinho atual da VTEX."
       />
       <BudgetCartTool />
     </div>

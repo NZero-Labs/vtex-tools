@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   fetchBudget: vi.fn(),
   fetchVersion: vi.fn(),
   fetchVersions: vi.fn(),
+  saveHistory: vi.fn(),
 }));
 
 vi.mock("@/modules/budget-audit/data", () => ({
@@ -35,6 +36,9 @@ vi.mock(
   "@/modules/budget-audit/infrastructure/vtex-catalog-repository",
   () => ({ addWeights: (subjects: unknown[]) => subjects }),
 );
+vi.mock("@/modules/budget-audit/history", () => ({
+  saveComparisonHistory: mocks.saveHistory,
+}));
 
 import { POST } from "./route";
 
@@ -58,6 +62,7 @@ describe("POST /api/budget-versions", () => {
     });
     mocks.fetchVersion.mockResolvedValue({ ...subject, kind: "version" });
     mocks.fetchVersions.mockResolvedValue([]);
+    mocks.saveHistory.mockResolvedValue("comparison-id");
   });
 
   it("nega a requisição antes de acessar a integração", async () => {
@@ -96,6 +101,10 @@ describe("POST /api/budget-versions", () => {
       "server-document",
       "v1",
       expect.anything(),
+    );
+    expect(mocks.saveHistory).toHaveBeenCalledWith(
+      "user",
+      expect.objectContaining({ budgets: expect.any(Array), comparisons: expect.any(Array) }),
     );
     expect(await response.text()).not.toContain("server-document");
   });

@@ -59,6 +59,8 @@ const logisticsSchema = z.object({
   selectedDeliveryChannel: optionalText,
 }).passthrough();
 
+const addressSchema = z.object({ postalCode: optionalText }).passthrough().nullish();
+
 const rawBudgetSchema = z.object({
   id: optionalText,
   idBudget: z.union([z.string(), z.number()]).transform(String),
@@ -76,6 +78,14 @@ const rawBudgetSchema = z.object({
   deliveryType: optionalText,
   postalCode: optionalText,
   shippingPostalCode: optionalText,
+  address: addressSchema,
+  shippingAddress: addressSchema,
+  deliveryAddress: addressSchema,
+  shippingData: z.object({
+    address: addressSchema,
+    selectedAddresses: z.array(z.object({ postalCode: optionalText }).passthrough()).nullish(),
+    logisticsInfo: z.array(logisticsSchema).nullish().transform((value) => value ?? []),
+  }).passthrough().nullish(),
   logisticsInfo: z.array(logisticsSchema).nullish().transform((value) => value ?? []),
   marketingTags: z.array(z.string()).nullish().transform((value) => value ?? []),
 }).passthrough();
@@ -118,11 +128,19 @@ const uniqueSorted = (values: Array<string | undefined>) => [...new Set(values.f
 const slaLabels: Record<string, string> = {
   "AMARANZ LOGISTICA CAJ/FSA": "PDO/CIF",
   "EXP LOGISTICA CAJ/FSA": "EXP/CIF",
-  "FOB LOGISTICA CAJ/FSA": "PDO/FOB",
 };
 
 export function normalizeSla(value: string) {
-  return slaLabels[value.trim().toUpperCase()] ?? value.trim();
+  const trimmedValue = value.trim();
+  const normalizedValue = trimmedValue.toUpperCase();
+  if (normalizedValue.includes("FOB")) {
+    const locations = [
+      normalizedValue.includes("FSA") ? "FSA (BA)" : undefined,
+      normalizedValue.includes("CAJ") ? "CAJAMAR (SP)" : undefined,
+    ].filter((location): location is string => Boolean(location));
+    return locations.length ? `FOB ${locations.join(" / ")}` : trimmedValue;
+  }
+  return slaLabels[normalizedValue] ?? trimmedValue;
 }
 
 function normalizePromotions(
@@ -181,10 +199,20 @@ export function normalizeBudget(input: unknown, moneyScale: number, kind: Subjec
   if (total === undefined) throw new Error("Total do orçamento ausente");
   const money = (value: number) => roundMoney(value / moneyScale);
   const optionalMoney = (value: number | undefined) => value === undefined ? null : money(value);
-  const logistics = raw.logisticsInfo;
+  const logistics = [...raw.logisticsInfo, ...(raw.shippingData?.logisticsInfo ?? [])];
   const deliveryTypes = uniqueSorted([raw.deliveryType, ...logistics.map((item) => item.selectedDeliveryChannel)]);
   const selectedSlas = logistics.flatMap((item) => item.selectedSla ? [normalizeSla(item.selectedSla)] : []);
-  const slas = uniqueSorted([raw.shippingType, ...selectedSlas]);
+  const slas = uniqueSorted([
+    raw.shippingType ? normalizeSla(raw.shippingType) : undefined,
+    ...selectedSlas,
+  ]);
+  const postalCode = raw.shippingPostalCode
+    ?? raw.postalCode
+    ?? raw.shippingData?.address?.postalCode
+    ?? raw.shippingData?.selectedAddresses?.[0]?.postalCode
+    ?? raw.shippingAddress?.postalCode
+    ?? raw.deliveryAddress?.postalCode
+    ?? raw.address?.postalCode;
 
   return {
     id: raw.idBudget,
@@ -200,7 +228,7 @@ export function normalizeBudget(input: unknown, moneyScale: number, kind: Subjec
       total: money(total),
     },
     shipping: {
-      postalCode: raw.shippingPostalCode ?? raw.postalCode,
+      postalCode,
       deliveryTypes,
       slas,
       value: optionalMoney(raw.totals?.shipping ?? raw.shipping ?? raw.shippingDeliveryValue),

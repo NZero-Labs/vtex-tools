@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AlertTriangle, ArrowRight, Clock3, History, RotateCcw } from "lucide-react";
 
@@ -23,6 +24,7 @@ type VersionComparison = {
   version: NormalizedSubject;
   comparison: SubjectComparison;
   versionMetadata: Version;
+  comparisonId: string;
 };
 
 const dateTime = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" });
@@ -33,6 +35,7 @@ function formatDate(value: string | null) {
 }
 
 export function BudgetVersionsTool() {
+  const router = useRouter();
   const [budgetId, setBudgetId] = useState("");
   const [list, setList] = useState<VersionList>();
   const [data, setData] = useState<ComparisonReport>();
@@ -73,6 +76,7 @@ export function BudgetVersionsTool() {
     try {
       const result = await post({ action: "compare", budgetId: budgetId.trim(), versionId }) as VersionComparison;
       setData({ source: result.source, budgets: [result.current, result.version], comparisons: [result.comparison] });
+      router.push(`/ferramentas/auditoria-orcamentos/historico/${result.comparisonId}`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Não foi possível comparar a versão");
     } finally {

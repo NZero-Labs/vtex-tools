@@ -1,5 +1,8 @@
+import "server-only";
+
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 import { auth } from "@/lib/auth";
 import { type Capability, hasCapability, type Principal, type Role } from "./permissions";
@@ -13,7 +16,7 @@ export type CurrentPrincipal = Principal & {
   image: string | null;
 };
 
-export async function getCurrentPrincipal(): Promise<CurrentPrincipal | null> {
+export const getCurrentPrincipal = cache(async (): Promise<CurrentPrincipal | null> => {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session || !roles.has(session.user.role as Role)) return null;
 
@@ -25,7 +28,7 @@ export async function getCurrentPrincipal(): Promise<CurrentPrincipal | null> {
     role: session.user.role as Role,
     active: !session.user.banned,
   };
-}
+});
 
 export async function requirePrincipal(capability?: Capability) {
   const principal = await getCurrentPrincipal();

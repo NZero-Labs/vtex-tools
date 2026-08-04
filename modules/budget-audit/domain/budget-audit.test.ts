@@ -80,6 +80,28 @@ describe("normalizeBudget", () => {
     expect(budget.totals).toMatchObject({ subtotal: null, discount: null, shipping: null, tax: null, total: 190 });
   });
 
+  it("recupera o CEP do endereço aninhado do orçamento CIF", () => {
+    const cif = normalizeBudget(rawBudget("101", {
+      shippingType: "CIF",
+      shippingData: { address: { postalCode: "01310-100" } },
+    }), 100);
+    const fob = normalizeBudget(rawBudget("102", { shippingType: "FOB" }), 100);
+
+    expect(cif.shipping.postalCode).toBe("01310-100");
+    expect(fob.shipping.postalCode).toBeUndefined();
+  });
+
+  it("recupera a origem FOB dos logisticsInfo aninhados do orçamento", () => {
+    const budget = normalizeBudget(rawBudget("101", {
+      shippingType: "FOB",
+      shippingData: {
+        logisticsInfo: [{ selectedSla: "FOB FSA", selectedDeliveryChannel: "delivery" }],
+      },
+    }), 100);
+
+    expect(budget.shipping.slas).toContain("FOB FSA (BA)");
+  });
+
   it("aceita o formato real do Master Data com totais no nível raiz e opcionais nulos", () => {
     const budget = normalizeBudget({
       id: "document-101",
@@ -124,7 +146,7 @@ describe("normalizeOrderForm", () => {
     });
 
     expect(cart.items[0]).toMatchObject({ quantity: 2, sellingPrice: 90, totalPrice: 180 });
-    expect(cart.shipping).toEqual({ postalCode: "01310-100", deliveryTypes: ["delivery"], slas: ["PDO/CIF", "PDO/FOB"], value: 10 });
+    expect(cart.shipping).toEqual({ postalCode: "01310-100", deliveryTypes: ["delivery"], slas: ["FOB FSA (BA) / CAJAMAR (SP)", "PDO/CIF"], value: 10 });
     expect(cart.promotions).toEqual([{ id: "promo-1", name: "Benefício sem valor", value: null }]);
     expect(cart.marketingTags).toEqual(["solar"]);
     expect(cart).not.toHaveProperty("clientProfileData");
@@ -132,6 +154,12 @@ describe("normalizeOrderForm", () => {
 
   it("preserva SLA desconhecido", () => {
     expect(normalizeSla("Transportadora regional")).toBe("Transportadora regional");
+  });
+
+  it("preserva a origem dos SLAs FOB", () => {
+    expect(normalizeSla("FOB LOGISTICA CAJ/FSA")).toBe("FOB FSA (BA) / CAJAMAR (SP)");
+    expect(normalizeSla("FOB FSA")).toBe("FOB FSA (BA)");
+    expect(normalizeSla("FOB CAJAMAR")).toBe("FOB CAJAMAR (SP)");
   });
 });
 

@@ -48,7 +48,7 @@ export function AppHeader() {
   )?.[1];
 
   return (
-    <header className="bg-background/92 sticky top-0 z-20 flex h-14 items-center gap-2 border-b px-3 backdrop-blur-md sm:px-5 lg:px-7">
+    <header className="bg-background/95 sticky top-0 z-20 flex h-14 items-center gap-2 border-b px-3 sm:px-5 lg:px-7">
       <SidebarTrigger aria-label="Alternar navegação" />
       <Separator orientation="vertical" className="mx-1 h-4" />
       <Breadcrumb className="min-w-0 flex-1">
