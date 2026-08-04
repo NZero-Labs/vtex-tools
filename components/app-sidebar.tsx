@@ -39,7 +39,7 @@ import type { Role } from "@/lib/auth/permissions";
 const primaryItems = [
   { href: "/dashboard", label: "Visão geral", icon: Grid2X2 },
   { href: "/ferramentas", label: "Ferramentas", icon: FileDiff },
-  { href: "/favoritos", label: "Favoritos", icon: Heart },
+  // { href: "/favoritos", label: "Favoritos", icon: Heart },
 ];
 
 const adminItems = [
@@ -61,12 +61,21 @@ function getActiveHref(items: NavigationItem[], pathname: string) {
     .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 }
 
-export function AppSidebar({ user }: { user: { name: string; email: string; image: string | null; role: Role } }) {
+export function AppSidebar({
+  user,
+}: {
+  user: { name: string; email: string; image: string | null; role: Role };
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { isMobile, setOpenMobile } = useSidebar();
   const [pendingHref, setPendingHref] = useState<string>();
-  const initials = user.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+  const initials = user.name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
   const visiblePendingHref = pendingHref === pathname ? undefined : pendingHref;
 
   async function signOut() {
@@ -93,7 +102,15 @@ export function AppSidebar({ user }: { user: { name: string; email: string; imag
           return (
             <SidebarMenuItem key={href}>
               <SidebarMenuButton
-                render={<Link href={href} prefetch aria-label={label} aria-current={isActive ? "page" : undefined} aria-busy={isPending || undefined} />}
+                render={
+                  <Link
+                    href={href}
+                    prefetch
+                    aria-label={label}
+                    aria-current={isActive ? "page" : undefined}
+                    aria-busy={isPending || undefined}
+                  />
+                }
                 isActive={isActive}
                 tooltip={label}
                 onClick={() => handleNavigation(href)}
@@ -101,7 +118,14 @@ export function AppSidebar({ user }: { user: { name: string; email: string; imag
                 onFocus={() => router.prefetch(href)}
                 className={isPending ? "text-sidebar-foreground/70" : undefined}
               >
-                {isPending ? <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden /> : <Icon />}
+                {isPending ? (
+                  <LoaderCircle
+                    className="animate-spin motion-reduce:animate-none"
+                    aria-hidden
+                  />
+                ) : (
+                  <Icon />
+                )}
                 <span>{label}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -114,7 +138,10 @@ export function AppSidebar({ user }: { user: { name: string; email: string; imag
   return (
     <Sidebar collapsible="icon" variant="inset">
       <SidebarHeader className="p-3 pb-2 group-data-[collapsible=icon]:p-2">
-        <Link href="/dashboard" className="flex h-16 items-center justify-start overflow-hidden rounded-lg px-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidebar-ring group-data-[collapsible=icon]:h-12 group-data-[collapsible=icon]:justify-center">
+        <Link
+          href="/dashboard"
+          className="flex h-16 items-center justify-start overflow-hidden rounded-lg px-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidebar-ring group-data-[collapsible=icon]:h-12 group-data-[collapsible=icon]:justify-center"
+        >
           <BrandLogo className="h-auto w-[8.5rem] max-w-full shrink-0 object-left dark:brightness-0 dark:invert group-data-[collapsible=icon]:hidden" />
           <Image
             src="/favicon.ico"
@@ -141,19 +168,41 @@ export function AppSidebar({ user }: { user: { name: string; email: string; imag
       <SidebarFooter className="border-t border-sidebar-border p-3">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton render={<Link href="/perfil" aria-label="Perfil e preferências" />} size="lg" tooltip="Perfil e preferências" onClick={() => isMobile && setOpenMobile(false)}>
+            <SidebarMenuButton
+              render={
+                <Link href="/perfil" aria-label="Perfil e preferências" />
+              }
+              size="lg"
+              tooltip="Perfil e preferências"
+              onClick={() => isMobile && setOpenMobile(false)}
+            >
               <Avatar className="size-8 rounded-lg">
-                <AvatarImage src={user.image ?? undefined} alt="" className="rounded-lg" />
-                <AvatarFallback className="rounded-lg bg-sidebar-accent text-xs text-sidebar-accent-foreground">{initials}</AvatarFallback>
+                <AvatarImage
+                  src={user.image ?? undefined}
+                  alt=""
+                  className="rounded-lg"
+                />
+                <AvatarFallback className="rounded-lg bg-sidebar-accent text-xs text-sidebar-accent-foreground">
+                  {initials}
+                </AvatarFallback>
               </Avatar>
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-medium">{user.name}</span>
-                <span className="block truncate text-xs text-sidebar-foreground/60">{user.email}</span>
+                <span className="block truncate text-xs text-sidebar-foreground/60">
+                  {user.email}
+                </span>
               </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={signOut} aria-label="Sair" tooltip="Sair"><LogOut /><span>Sair</span></SidebarMenuButton>
+            <SidebarMenuButton
+              onClick={signOut}
+              aria-label="Sair"
+              tooltip="Sair"
+            >
+              <LogOut />
+              <span>Sair</span>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
