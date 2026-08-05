@@ -1,4 +1,4 @@
-import { boolean, index, integer, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, index, integer, jsonb, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -98,6 +98,18 @@ export const recentTool = pgTable(
     usedAt: timestamp("used_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [primaryKey({ columns: [table.userId, table.toolId] })],
+);
+
+export const budgetComparisonHistory = pgTable(
+  "budget_comparison_history",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    report: jsonb("report").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("budget_comparison_history_user_created_idx").on(table.userId, table.createdAt)],
 );
 
 export const adminAuditLog = pgTable(

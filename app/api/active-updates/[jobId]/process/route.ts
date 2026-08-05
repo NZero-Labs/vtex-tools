@@ -1,5 +1,5 @@
 import { getServerEnv } from "@/lib/env";
-import { claimActiveUpdateItems, getActiveUpdateJob, getActiveUpdatePrincipal, saveActiveUpdateResults } from "@/modules/active-update/data";
+import { claimActiveUpdateItems, getActiveUpdatePrincipal, getActiveUpdateProgress, saveActiveUpdateResults } from "@/modules/active-update/data";
 import { processActiveUpdateRow } from "@/modules/active-update/infrastructure/vtex-active-update-repository";
 
 export const maxDuration = 60;
@@ -17,6 +17,6 @@ export async function POST(_request: Request, { params }: { params: Promise<{ jo
     })));
     await saveActiveUpdateResults(jobId, results);
   }
-  const job = await getActiveUpdateJob(access.principal, jobId);
+  const job = await getActiveUpdateProgress(access.principal, jobId);
   return job ? Response.json(job) : Response.json({ error: "Processamento não encontrado." }, { status: 404 });
 }

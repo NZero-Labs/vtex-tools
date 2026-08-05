@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { requirePrincipal } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import { favoriteTool, recentTool } from "@/lib/db/schema";
+import { favoriteTool } from "@/lib/db/schema";
 import { findTool } from "./catalog";
 
 export async function toggleFavorite(toolId: string) {
@@ -19,14 +19,4 @@ export async function toggleFavorite(toolId: string) {
 
   revalidatePath("/dashboard");
   revalidatePath("/ferramentas");
-}
-
-export async function recordRecentTool(toolId: string) {
-  const principal = await requirePrincipal("dashboard:view");
-  if (!findTool(toolId)) throw new Error("Ferramenta inválida");
-
-  await db
-    .insert(recentTool)
-    .values({ userId: principal.id, toolId, usedAt: new Date() })
-    .onConflictDoUpdate({ target: [recentTool.userId, recentTool.toolId], set: { usedAt: new Date() } });
 }

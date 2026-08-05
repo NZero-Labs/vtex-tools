@@ -1,35 +1,25 @@
-import { hasCapability } from "@/lib/auth/permissions";
-import { getCurrentPrincipal } from "@/lib/auth/session";
-import { db } from "@/lib/db";
-import { recentTool } from "@/lib/db/schema";
 import { getServerEnv } from "@/lib/env";
+import { compareAuditSubjects } from "@/modules/budget-audit/domain/compare-subjects";
+import { budgetRequestSchema } from "@/modules/budget-audit/domain/requests";
+import { toPublicSubject } from "@/modules/budget-audit/domain/subject";
 import {
-  budgetRequestSchema,
-  compareBudgets,
-} from "@/modules/budget-comparison/domain/budget-comparison";
-import {
-  BudgetIntegrationError,
-  fetchBudget,
-} from "@/modules/budget-comparison/infrastructure/vtex-budget-repository";
-import { getToolAccess } from "@/modules/tool-catalog/data";
+  getBudgetAuditPrincipal,
+  recordBudgetAuditUse,
+} from "@/modules/budget-audit/data";
+import { addWeights } from "@/modules/budget-audit/infrastructure/vtex-catalog-repository";
+import { BudgetIntegrationError } from "@/modules/budget-audit/infrastructure/vtex-integration-error";
+import { fetchBudget } from "@/modules/budget-audit/infrastructure/vtex-budget-repository";
+import { saveComparisonHistory } from "@/modules/budget-audit/history";
+import type { ComparisonReport } from "@/modules/budget-audit/presentation/export-report";
 
 export async function POST(request: Request) {
-  const principal = await getCurrentPrincipal();
-  if (!principal)
-    return Response.json(
-      { error: "Sessão expirada. Entre novamente." },
-      { status: 401 },
-    );
-  if (!hasCapability(principal, "budget:compare"))
-    return Response.json({ error: "Acesso negado." }, { status: 403 });
-  if (!(await getToolAccess(principal, "budget-comparison")).allowed)
-    return Response.json(
-      { error: "Esta ferramenta não está disponível para sua conta." },
-      { status: 403 },
-    );
+  const body = request.json().catch(() => null);
+  const access = await getBudgetAuditPrincipal();
+  if (!access.ok)
+    return Response.json({ error: access.error }, { status: access.status });
 
   const parsed = budgetRequestSchema.safeParse(
-    await request.json().catch(() => null),
+    await body,
   );
   if (!parsed.success)
     return Response.json(
@@ -39,32 +29,27 @@ export async function POST(request: Request) {
 
   try {
     const env = getServerEnv();
-    const budgets = await Promise.all(
+    const records = await Promise.all(
       parsed.data.budgetIds.map((budgetId) => fetchBudget(budgetId, env)),
     );
+    const budgets = await addWeights(records.map(toPublicSubject), env);
     const baseline = budgets[0];
     if (!baseline)
       throw new BudgetIntegrationError("Orçamento base ausente", 400);
 
-    await db
-      .insert(recentTool)
-      .values({
-        userId: principal.id,
-        toolId: "budget-comparison",
-        usedAt: new Date(),
-      })
-      .onConflictDoUpdate({
-        target: [recentTool.userId, recentTool.toolId],
-        set: { usedAt: new Date() },
-      });
-
-    return Response.json({
+    const report: ComparisonReport = {
       source: env.USE_VTEX_FIXTURES ? "fixture" : "vtex",
       budgets,
       comparisons: budgets
         .slice(1)
-        .map((budget) => compareBudgets(baseline, budget)),
-    });
+        .map((budget) => compareAuditSubjects(baseline, budget)),
+    };
+    const [comparisonId] = await Promise.all([
+      saveComparisonHistory(access.principal.id, report),
+      recordBudgetAuditUse(access.principal),
+    ]);
+
+    return Response.json({ ...report, comparisonId });
   } catch (error) {
     if (error instanceof BudgetIntegrationError)
       return Response.json({ error: error.message }, { status: error.status });

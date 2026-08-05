@@ -41,6 +41,8 @@ Não existe cadastro público. O primeiro administrador é criado por comando qu
 - Copiar valores, limpar e iniciar nova comparação.
 - Desktop com tabela semântica; mobile com cards, sem tabela horizontal gigante.
 - Dados ausentes aparecem como desconhecidos, nunca como zero inventado.
+- Comparação de um orçamento com um `orderForm`, preservando a mesma leitura de divergências.
+- Comparação da versão atual com versões históricas selecionadas; o `documentId` é resolvido no servidor.
 
 Pagamento, disponibilidade de estoque, produto separado de SKU e dados de cliente só serão comparados quando existirem no contrato VTEX validado.
 
@@ -76,4 +78,4 @@ Pagamento, disponibilidade de estoque, produto separado de SKU e dados de client
 
 ## Fora do primeiro release
 
-Microsoft Entra ID/SSO, 2FA, histórico persistido do payload completo das comparações, carrinho versus orçamento, versões históricas e ferramentas adicionais.
+Microsoft Entra ID/SSO, 2FA, histórico persistido do payload completo das comparações e ferramentas adicionais.

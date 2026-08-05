@@ -15,27 +15,32 @@ export type ToolDefinition = {
   order: number;
 };
 
+export const TOOL_IDS = {
+  activeUpdate: "active-update",
+  budgetAudit: "budget-comparison",
+} as const;
+
 export const toolCatalog = [
   {
-    id: "active-update",
-    name: "Atualizar Ativa",
+    id: TOOL_IDS.activeUpdate,
+    name: "Atualizar ativo",
     description: "Atualize o uso de cupom de clientes em massa por CSV.",
     route: "/ferramentas/atualizar-ativo",
     icon: "user-check",
     category: "Clientes",
-    tags: ["clientes", "CSV", "Master Data", "VTEX"],
+    tags: ["Clientes", "CSV", "Master Data", "VTEX"],
     requiredCapability: "active:update",
     defaultStatus: "available",
     order: 20,
   },
   {
-    id: "budget-comparison",
-    name: "Comparação de orçamentos",
-    description: "Audite produtos, valores e condições entre propostas VTEX.",
-    route: "/ferramentas/comparar-orcamentos",
+    id: TOOL_IDS.budgetAudit,
+    name: "Auditoria de Orçamentos",
+    description: "Compare propostas, carrinhos e versões históricas da VTEX.",
+    route: "/ferramentas/auditoria-orcamentos",
     icon: "files",
     category: "Orçamentos",
-    tags: ["auditoria", "preços", "SKUs", "VTEX"],
+    tags: ["Auditoria", "Preços", "SKUs", "VTEX"],
     requiredCapability: "budget:compare",
     defaultStatus: "available",
     order: 10,
