@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Files, History, ShoppingCart } from "lucide-react";
+import { ArrowRight, Clock3, Files, History, ShoppingCart } from "lucide-react";
 
 import {
   Card,
+  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { requirePrincipal } from "@/lib/auth/session";
+import { listComparisonHistory } from "@/modules/budget-audit/history";
 import { AuditPageHeader } from "@/modules/budget-audit/presentation/audit-page-header";
 
 export const metadata: Metadata = { title: "Auditoria de Orçamentos" };
@@ -36,7 +39,18 @@ const flows = [
   },
 ];
 
-export default function BudgetAuditPage() {
+const kindLabels = {
+  budget: "Orçamento × orçamento",
+  cart: "Orçamento × carrinho",
+  version: "Orçamento × versão",
+} as const;
+
+const dateTime = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" });
+
+export default async function BudgetAuditPage() {
+  const principal = await requirePrincipal("budget:compare");
+  const history = await listComparisonHistory(principal.id);
+
   return (
     <div className="flex flex-col gap-8">
       <AuditPageHeader
@@ -68,6 +82,55 @@ export default function BudgetAuditPage() {
           </Link>
         ))}
       </section>
+
+      {history.length > 0 && (
+        <section aria-labelledby="historico-titulo">
+          <div className="mb-5 flex items-center gap-3">
+            <History className="text-primary size-5" aria-hidden />
+            <div>
+              <h2
+                id="historico-titulo"
+                className="font-heading text-xl font-medium"
+              >
+                Comparações salvas
+              </h2>
+              <p className="text-muted-foreground mt-0.5 text-sm">
+                Reabra uma comparação recente ou consulte todo o histórico.
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {history.slice(0, 3).map((comparison) => (
+              <Link
+                key={comparison.id}
+                href={`/ferramentas/auditoria-orcamentos/historico/${comparison.id}`}
+                className="group focus-visible:outline-none"
+              >
+                <Card className="h-full transition-colors group-hover:border-primary/50 group-focus-visible:border-ring group-focus-visible:ring-3 group-focus-visible:ring-ring/30">
+                  <CardContent className="flex min-w-0 items-center gap-4 p-4">
+                    <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-xl">
+                      <History className="size-5" aria-hidden />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{kindLabels[comparison.kind]}</p>
+                      <p className="text-muted-foreground mt-1 flex items-center gap-1.5 text-sm">
+                        <Clock3 className="size-3.5" aria-hidden />
+                        {dateTime.format(comparison.createdAt)}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+          <Link
+            href="/ferramentas/auditoria-orcamentos/historico"
+            className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
+          >
+            Ver todo o histórico <ArrowRight className="size-4" aria-hidden />
+          </Link>
+        </section>
+      )}
     </div>
   );
 }
