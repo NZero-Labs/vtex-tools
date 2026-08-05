@@ -3,8 +3,8 @@ import { defineConfig } from "drizzle-kit"
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is required to run Drizzle commands")
 }
-if (!process.env.NEON_BRANCH || process.env.NEON_BRANCH !== process.env.DATABASE_ENV) {
-  throw new Error("NEON_BRANCH must match DATABASE_ENV before running Drizzle commands")
+if (!process.env.NEON_BRANCH) {
+  throw new Error("NEON_BRANCH is required to run Drizzle commands")
 }
 
 export default defineConfig({

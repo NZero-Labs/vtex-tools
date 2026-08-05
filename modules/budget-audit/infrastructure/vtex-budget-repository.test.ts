@@ -9,7 +9,6 @@ import type { BudgetIntegrationError } from "./vtex-integration-error";
 const env: ServerEnv = {
   BETTER_AUTH_URL: "http://localhost:3000",
   BETTER_AUTH_SECRET: "development-only-secret-at-least-32-characters",
-  DATABASE_ENV: "test",
   NEON_BRANCH: "test",
   DATABASE_URL: "postgresql://localhost/test",
   VTEX_ACCOUNT: "amara",

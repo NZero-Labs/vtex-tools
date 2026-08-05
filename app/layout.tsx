@@ -3,6 +3,7 @@ import "@fontsource-variable/manrope";
 import "@fontsource-variable/newsreader";
 
 import { Providers } from "@/components/providers";
+import { RouteProgress } from "@/components/route-progress";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export default function RootLayout({
     <html lang="pt-BR" suppressHydrationWarning>
       <body className="min-h-dvh">
         <Providers>
+          <RouteProgress />
           <a
             href="#main-content"
             className="bg-primary text-primary-foreground fixed top-3 left-3 z-50 -translate-y-20 rounded-lg px-4 py-2 font-semibold transition-transform focus:translate-y-0"
