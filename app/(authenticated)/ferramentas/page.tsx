@@ -17,7 +17,7 @@ export default async function ToolsPage() {
       <PageHeader
         eyebrow="Catálogo central"
         title="Encontre sua próxima ação"
-        description="Ferramentas aprovadas para tornar a operação VTEX mais rápida, consistente e auditável."
+        description="Ferramentas aprovadas para deixar a operação VTEX mais rápida e confiável."
       />
       <ToolExplorer tools={serialized} />
     </div>

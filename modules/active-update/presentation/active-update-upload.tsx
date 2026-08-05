@@ -52,8 +52,8 @@ export function ActiveUpdateUpload({
           <FileUp className="text-primary size-5" aria-hidden /> Nova atualização
         </CardTitle>
         <CardDescription>
-          Envie um CSV UTF-8 com as colunas <code>email;cnpjDoc</code>. O arquivo é lido e enviado
-          em blocos — não é carregado inteiro na memória.
+          Envie a lista de clientes com as colunas <code>email</code> e{" "}
+          <code>cnpjDoc</code>. O andamento aparece em tempo real logo abaixo.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -122,7 +122,7 @@ export function ActiveUpdateUpload({
                 Arraste o CSV aqui <span className="text-muted-foreground">ou clique para selecionar</span>
               </p>
               <p className="text-muted-foreground mt-1 text-xs">
-                <code>email;cnpjDoc</code> · UTF-8
+                <code>email;cnpjDoc</code> · CSV
               </p>
             </div>
           </label>

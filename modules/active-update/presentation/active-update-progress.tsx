@@ -73,7 +73,7 @@ export function ActiveUpdateProgress({
             </CardTitle>
             <CardDescription className="mt-1">
               {activeJob.canControl
-                ? "O progresso é salvo após cada registro. Você pode fechar a página com segurança."
+                ? "O progresso é salvo automaticamente. Você pode fechar a página e retomar depois."
                 : `Processamento de ${activeJob.ownerName ?? "colaborador"}.`}
             </CardDescription>
           </div>
@@ -167,7 +167,7 @@ export function ActiveUpdateProgress({
         </CardContent>
         <CardFooter className="flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-muted-foreground text-xs">
-            Dados completos aparecem somente nos arquivos de resultado.
+            Os dados completos ficam disponíveis no arquivo de resultado.
           </span>
           <div className="flex flex-wrap gap-2">
             {activeJob.canControl && activeJob.status === "running" ? (
@@ -215,7 +215,7 @@ export function ActiveUpdateProgress({
             tempo real
           </CardTitle>
           <CardDescription>
-            Últimos resultados, sempre mascarados.
+            Últimas linhas processadas, sem dados sensíveis.
           </CardDescription>
         </CardHeader>
         <CardContent aria-live="polite">
@@ -270,7 +270,7 @@ export function ActiveUpdateProgress({
               <EmptyHeader>
                 <EmptyTitle>Aguardando resultados</EmptyTitle>
                 <EmptyDescription>
-                  Os registros aparecerão assim que o primeiro bloco terminar.
+                  Os resultados aparecem conforme o processamento avança.
                 </EmptyDescription>
               </EmptyHeader>
             </Empty>

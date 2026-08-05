@@ -75,7 +75,7 @@ export function ActiveUpdateHistory({
         Histórico
       </CardTitle>
       <CardDescription>
-        Processamentos disponíveis por até 90 dias.
+        Seus processamentos dos últimos 90 dias.
       </CardDescription>
       {isAdmin ? (
         <Select

@@ -26,7 +26,7 @@ export default async function ActiveUpdatePage() {
       <PageHeader
         eyebrow="Operação de clientes"
         title="Atualize em escala. Acompanhe cada linha."
-        description="Importe o CSV, acompanhe os resultados mascarados e retome o processamento quando precisar."
+        description="Envie a lista de clientes, acompanhe o resultado de cada linha e retome o processamento quando precisar."
       />
       <ActiveUpdateTool
         isAdmin={principal.role === "ADMIN"}
