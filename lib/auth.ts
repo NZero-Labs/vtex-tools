@@ -31,7 +31,11 @@ export const auth = betterAuth({
       requireLocalEmailVerified: false,
     },
   },
-  session: { expiresIn: 60 * 60 * 8, updateAge: 60 * 30 },
+  session: {
+    expiresIn: 60 * 60 * 8,
+    updateAge: 60 * 30,
+    cookieCache: { enabled: true, maxAge: 5 * 60, strategy: "compact" },
+  },
   rateLimit: { enabled: true, window: 60, max: 100 },
   plugins: [
     admin({

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BookOpenCheck,
   FileDiff,
@@ -39,7 +39,11 @@ import type { Role } from "@/lib/auth/permissions";
 const primaryItems = [
   { href: "/dashboard", label: "Visão geral", icon: Grid2X2 },
   { href: "/ferramentas", label: "Ferramentas", icon: FileDiff },
-  { href: "/ferramentas/auditoria-orcamentos/historico", label: "Histórico de comparações", icon: History },
+  {
+    href: "/ferramentas/auditoria-orcamentos/historico",
+    label: "Histórico de comparações",
+    icon: History,
+  },
   // { href: "/favoritos", label: "Favoritos", icon: Heart },
 ];
 
@@ -68,6 +72,9 @@ export function AppSidebar({
   user: { name: string; email: string; image: string | null; role: Role };
 }) {
   const pathname = usePathname();
+  useEffect(() => {
+    void authClient.getSession();
+  }, [pathname]);
   const router = useRouter();
   const { isMobile, setOpenMobile } = useSidebar();
   const [pendingHref, setPendingHref] = useState<string>();
@@ -105,11 +112,11 @@ export function AppSidebar({
               <SidebarMenuButton
                 render={
                   <Link
-                  href={href}
+                    href={href}
                     prefetch={href === pathname ? false : undefined}
-                  aria-label={label}
-                  aria-current={isActive ? "page" : undefined}
-                  aria-busy={isPending || undefined}
+                    aria-label={label}
+                    aria-current={isActive ? "page" : undefined}
+                    aria-busy={isPending || undefined}
                   />
                 }
                 isActive={isActive}
