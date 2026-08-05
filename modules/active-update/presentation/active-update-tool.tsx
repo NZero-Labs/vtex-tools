@@ -6,6 +6,7 @@ import { XCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   parseActiveUpdateCsv,
+  ALL_OWNERS,
   UPLOAD_BATCH_SIZE,
   type ActiveUpdateJobDetailsDto,
   type ActiveUpdateJobDto,
@@ -79,20 +80,19 @@ export function ActiveUpdateTool({
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadedRows, setUploadedRows] = useState(0);
-  const [activeJob, setActiveJob] =
-    useState<ActiveUpdateJobDetailsDto | null>(initialJob);
+  const [activeJob, setActiveJob] = useState<ActiveUpdateJobDetailsDto | null>(
+    initialJob,
+  );
   const [history, setHistory] = useState<ActiveUpdateJobDto[]>(
     initialHistory.jobs,
   );
   const [collaborators, setCollaborators] = useState<
     HistoryResponse["collaborators"]
   >(initialHistory.collaborators);
-  const [ownerId, setOwnerId] = useState("all");
+  const [ownerId, setOwnerId] = useState(ALL_OWNERS);
   const [showAllHistory, setShowAllHistory] = useState(false);
   const [historyPage, setHistoryPage] = useState(initialHistory.page);
-  const [hasMoreHistory, setHasMoreHistory] = useState(
-    initialHistory.hasMore,
-  );
+  const [hasMoreHistory, setHasMoreHistory] = useState(initialHistory.hasMore);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -109,7 +109,7 @@ export function ActiveUpdateTool({
       setLoadingHistory(true);
       try {
         const params = new URLSearchParams({ page: String(page) });
-        if (selectedOwner !== "all") params.set("ownerId", selectedOwner);
+        if (selectedOwner !== ALL_OWNERS) params.set("ownerId", selectedOwner);
         const result = await api<HistoryResponse>(
           `/api/active-updates?${params}`,
         );
@@ -143,7 +143,9 @@ export function ActiveUpdateTool({
             { method: "POST" },
           );
           if (stopped) return;
-          setActiveJob((current) => (current ? { ...current, ...next } : current));
+          setActiveJob((current) =>
+            current ? { ...current, ...next } : current,
+          );
           if (next.status !== "running") {
             await loadJob(activeJob.id);
             await loadHistory(ownerId);

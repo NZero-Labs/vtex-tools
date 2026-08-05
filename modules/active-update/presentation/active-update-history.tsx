@@ -31,6 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { ActiveUpdateJobDto } from "../domain/active-update";
+import { ALL_OWNERS } from "../domain/active-update";
 import {
   activeUpdateDateTime,
   activeUpdateStatusLabels,
@@ -79,7 +80,7 @@ export function ActiveUpdateHistory({
       {isAdmin ? (
         <Select
           value={ownerId}
-          onValueChange={(value) => void onOwnerChange(value ?? "all")}
+          onValueChange={(value) => void onOwnerChange(value ?? ALL_OWNERS)}
         >
           <SelectTrigger
             className="mt-3 h-11 w-full sm:w-56"
@@ -89,7 +90,7 @@ export function ActiveUpdateHistory({
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value="all">Todos os colaboradores</SelectItem>
+              <SelectItem value={ALL_OWNERS}>Todos os colaboradores</SelectItem>
               {collaborators.map((person) => (
                 <SelectItem key={person.id} value={person.id}>
                   {person.name}

@@ -86,17 +86,31 @@ export function ActiveUpdateProgress({
         <CardContent className="flex flex-col gap-6">
           <div>
             <div
-              className="bg-muted h-2.5 overflow-hidden rounded-full"
+              className="bg-muted flex h-2.5 overflow-hidden rounded-full"
               role="progressbar"
               aria-label="Progresso do processamento"
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={progress}
             >
-              <div
-                className="bg-primary h-full rounded-full transition-[width] duration-200 motion-reduce:transition-none"
-                style={{ width: `${progress}%` }}
-              />
+              {activeJob.updatedCount > 0 ? (
+                <div
+                  className="bg-primary h-full rounded-l-full transition-[width] duration-200 motion-reduce:transition-none"
+                  style={{ width: `${(activeJob.updatedCount / activeJob.totalCount) * 100}%` }}
+                />
+              ) : null}
+              {activeJob.unchangedCount > 0 ? (
+                <div
+                  className="bg-muted-foreground/40 h-full transition-[width] duration-200 motion-reduce:transition-none"
+                  style={{ width: `${(activeJob.unchangedCount / activeJob.totalCount) * 100}%` }}
+                />
+              ) : null}
+              {activeJob.failedCount > 0 ? (
+                <div
+                  className="bg-destructive h-full rounded-r-full transition-[width] duration-200 motion-reduce:transition-none"
+                  style={{ width: `${(activeJob.failedCount / activeJob.totalCount) * 100}%` }}
+                />
+              ) : null}
             </div>
             <div className="text-muted-foreground mt-2 flex justify-between text-xs tabular-nums">
               <span>
@@ -105,6 +119,17 @@ export function ActiveUpdateProgress({
               </span>
               <span>
                 {activeJob.pendingCount.toLocaleString("pt-BR")} pendentes
+              </span>
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+              <span className="flex items-center gap-1.5">
+                <span className="bg-primary size-2 rounded-full" aria-hidden /> Atualizados
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="bg-muted-foreground/40 size-2 rounded-full" aria-hidden /> Sem alteração
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="bg-destructive size-2 rounded-full" aria-hidden /> Falhas
               </span>
             </div>
           </div>
