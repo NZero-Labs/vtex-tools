@@ -21,7 +21,7 @@ export default async function AdminPage() {
       <PageHeader
         eyebrow="Gestão da plataforma"
         title="Administração"
-        description="Controle acessos e disponibilidade com histórico auditável."
+        description="Controle acessos e disponibilidade, com registro de cada mudança."
       />
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Resumo da plataforma">

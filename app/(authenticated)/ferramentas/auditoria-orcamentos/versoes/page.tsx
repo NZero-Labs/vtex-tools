@@ -10,7 +10,7 @@ export default function BudgetVersionsPage() {
       <AuditPageHeader
         eyebrow="Auditoria de Orçamentos"
         title="Entenda a evolução de uma proposta."
-        description="Escolha uma versão histórica e compare-a com o orçamento atual sem expor o documento interno."
+        description="Escolha uma versão anterior e compare-a com o orçamento atual com segurança."
       />
       <BudgetVersionsTool />
     </div>

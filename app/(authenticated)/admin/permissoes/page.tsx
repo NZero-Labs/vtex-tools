@@ -22,7 +22,7 @@ export default async function PermissionsPage({
       <PageHeader
         eyebrow="Autorização"
         title="Permissões"
-        description="Defina exceções por usuário. Herdar mantém as capacidades normais do papel."
+        description="Defina exceções por usuário. Escolha Herdar para manter a permissão padrão do cargo."
       />
       <FeedbackAlert success={params.success} error={params.error} />
 

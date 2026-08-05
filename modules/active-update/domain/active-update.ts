@@ -5,9 +5,14 @@ export const PROCESS_BATCH_SIZE = 5;
 export const MAX_ATTEMPTS = 3;
 export const HISTORY_PAGE_SIZE = 20;
 
+export const ALL_OWNERS = "all";
+
 export const activeUpdateRowSchema = z.object({
   rowNumber: z.number().int().positive(),
-  email: z.email("E-mail inválido").max(254, "E-mail muito longo").transform((value) => value.toLowerCase()),
+  email: z
+    .email("E-mail inválido")
+    .max(254, "E-mail muito longo")
+    .transform((value) => value.toLowerCase()),
   cnpjDoc: z.string().trim().min(1, "CNPJ ausente").max(64, "CNPJ muito longo"),
 });
 
@@ -49,7 +54,11 @@ export type ActiveUpdateJobDetailsDto = ActiveUpdateJobDto & {
 };
 
 export const createActiveUpdateJobSchema = z.object({
-  fileName: z.string().trim().min(1, "Nome do arquivo ausente").max(255, "Nome do arquivo muito longo"),
+  fileName: z
+    .string()
+    .trim()
+    .min(1, "Nome do arquivo ausente")
+    .max(255, "Nome do arquivo muito longo"),
 });
 
 export const appendActiveUpdateItemsSchema = z.object({
@@ -67,7 +76,10 @@ export const activeUpdateHistoryQuerySchema = z.object({
 });
 
 export class CsvValidationError extends Error {
-  constructor(readonly rowNumber: number, message: string) {
+  constructor(
+    readonly rowNumber: number,
+    message: string,
+  ) {
     super(`Linha ${rowNumber}: ${message}`);
     this.name = "CsvValidationError";
   }
@@ -76,18 +88,28 @@ export class CsvValidationError extends Error {
 function parseLine(line: string, rowNumber: number): ActiveUpdateRow | null {
   if (!line.trim()) return null;
   const columns = line.split(";");
-  if (columns.length !== 2) throw new CsvValidationError(rowNumber, "esperadas exatamente as colunas email e cnpjDoc");
+  if (columns.length !== 2)
+    throw new CsvValidationError(
+      rowNumber,
+      "esperadas exatamente as colunas email e cnpjDoc",
+    );
 
   const parsed = activeUpdateRowSchema.safeParse({
     rowNumber,
     email: columns[0]?.trim(),
     cnpjDoc: columns[1]?.trim(),
   });
-  if (!parsed.success) throw new CsvValidationError(rowNumber, parsed.error.issues[0]?.message ?? "registro inválido");
+  if (!parsed.success)
+    throw new CsvValidationError(
+      rowNumber,
+      parsed.error.issues[0]?.message ?? "registro inválido",
+    );
   return parsed.data;
 }
 
-export async function* parseActiveUpdateCsv(chunks: AsyncIterable<string>): AsyncGenerator<ActiveUpdateRow> {
+export async function* parseActiveUpdateCsv(
+  chunks: AsyncIterable<string>,
+): AsyncGenerator<ActiveUpdateRow> {
   let buffer = "";
   let rowNumber = 0;
   let headerRead = false;
@@ -97,8 +119,15 @@ export async function* parseActiveUpdateCsv(chunks: AsyncIterable<string>): Asyn
     const line = rawLine.endsWith("\r") ? rawLine.slice(0, -1) : rawLine;
     if (!headerRead) {
       headerRead = true;
-      const header = line.replace(/^\uFEFF/, "").split(";").map((column) => column.trim());
-      if (header.length !== 2 || header[0] !== "email" || header[1] !== "cnpjDoc") {
+      const header = line
+        .replace(/^\uFEFF/, "")
+        .split(";")
+        .map((column) => column.trim());
+      if (
+        header.length !== 2 ||
+        header[0] !== "email" ||
+        header[1] !== "cnpjDoc"
+      ) {
         throw new CsvValidationError(1, "cabeçalho esperado: email;cnpjDoc");
       }
       return null;

@@ -99,7 +99,7 @@ export function BudgetVersionsTool() {
           <div className="bg-accent text-accent-foreground mb-4 flex size-12 items-center justify-center rounded-2xl"><History className="size-6" aria-hidden /></div>
           <Badge variant="outline" className="mb-1 w-fit">Entrada · etapa 1</Badge>
           <CardTitle className="text-2xl">Histórico do orçamento</CardTitle>
-          <CardDescription>Busque pelo identificador público; o documento interno é resolvido somente no servidor.</CardDescription>
+          <CardDescription>Busque pelo identificador do orçamento que aparece no documento. Os dados internos ficam protegidos no servidor.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={findVersions} className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
