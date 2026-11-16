@@ -26,4 +26,14 @@ describe("CSV de atualização de ativo", () => {
     };
     await expect(read()).rejects.toMatchObject({ rowNumber: 2 });
   });
+
+  it("ignora e reporta linhas inválidas quando há onSkip", async () => {
+    const rows = [];
+    const skipped: number[] = [];
+    for await (const row of parseActiveUpdateCsv(chunks("email;cnpjDoc\na@x.com;1\nb@x.com;\nc@x.com;3"), (error) => skipped.push(error.rowNumber)))
+      rows.push(row.rowNumber);
+
+    expect(rows).toEqual([2, 4]);
+    expect(skipped).toEqual([3]);
+  });
 });

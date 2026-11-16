@@ -108,9 +108,9 @@ export function ActiveUpdateUpload({
           >
             <input
               type="file"
-              accept=".csv,text/csv,text/plain"
+              accept=".csv,.xlsx,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
               className="sr-only"
-              aria-label="Arquivo CSV"
+              aria-label="Arquivo CSV ou Excel"
               disabled={disabled}
               onChange={(event) => onFileChange(event.target.files?.[0] ?? null)}
             />
@@ -119,10 +119,10 @@ export function ActiveUpdateUpload({
             </div>
             <div>
               <p className="font-medium">
-                Arraste o CSV aqui <span className="text-muted-foreground">ou clique para selecionar</span>
+                Arraste o CSV ou Excel aqui <span className="text-muted-foreground">ou clique para selecionar</span>
               </p>
               <p className="text-muted-foreground mt-1 text-xs">
-                <code>email;cnpjDoc</code> · CSV
+                <code>email;cnpjDoc</code> · CSV ou XLSX
               </p>
             </div>
           </label>

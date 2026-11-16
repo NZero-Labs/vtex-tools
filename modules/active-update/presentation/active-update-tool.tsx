@@ -12,6 +12,7 @@ import {
   type ActiveUpdateJobDto,
   type ActiveUpdateRow,
 } from "../domain/active-update";
+import { xlsxToActiveUpdateCsv } from "../domain/xlsx";
 import { ActiveUpdateHistory } from "./active-update-history";
 import { ActiveUpdateProgress } from "./active-update-progress";
 import { ActiveUpdateUpload } from "./active-update-upload";
@@ -50,6 +51,10 @@ async function api<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 async function* decodedFileChunks(file: File) {
+  if (file.name.toLowerCase().endsWith(".xlsx")) {
+    yield await xlsxToActiveUpdateCsv(new Uint8Array(await file.arrayBuffer()));
+    return;
+  }
   const reader = file.stream().getReader();
   const decoder = new TextDecoder("utf-8");
   try {
@@ -95,6 +100,7 @@ export function ActiveUpdateTool({
   const [hasMoreHistory, setHasMoreHistory] = useState(initialHistory.hasMore);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const loadJob = useCallback(async (jobId: string) => {
     const job = await api<ActiveUpdateJobDetailsDto>(
@@ -194,6 +200,7 @@ export function ActiveUpdateTool({
     setUploading(true);
     setUploadedRows(0);
     setError(null);
+    setNotice(null);
     let jobId: string | null = null;
     try {
       const job = await api<{ id: string }>("/api/active-updates", {
@@ -204,7 +211,11 @@ export function ActiveUpdateTool({
       jobId = job.id;
       const batch: ActiveUpdateRow[] = [];
       let parsedRows = 0;
-      for await (const row of parseActiveUpdateCsv(decodedFileChunks(file))) {
+      const skipped: string[] = [];
+      for await (const row of parseActiveUpdateCsv(
+        decodedFileChunks(file),
+        (error) => skipped.push(error.message),
+      )) {
         batch.push(row);
         parsedRows += 1;
         if (batch.length === UPLOAD_BATCH_SIZE) {
@@ -212,6 +223,10 @@ export function ActiveUpdateTool({
           setUploadedRows(parsedRows);
         }
       }
+      if (!parsedRows)
+        throw new Error(
+          `Nenhuma linha válida no arquivo.${skipped[0] ? ` ${skipped[0]}` : ""}`,
+        );
       if (batch.length) await sendRows(jobId, batch);
       setUploadedRows(parsedRows);
       await api(`/api/active-updates/${jobId}`, {
@@ -222,6 +237,10 @@ export function ActiveUpdateTool({
       await loadJob(jobId);
       await loadHistory(ownerId);
       setFile(null);
+      if (skipped.length)
+        setNotice(
+          `${skipped.length.toLocaleString("pt-BR")} linha(s) ignorada(s): ${skipped.slice(0, 5).join("; ")}${skipped.length > 5 ? "; …" : ""}`,
+        );
     } catch (reason) {
       const message =
         reason instanceof Error
@@ -300,6 +319,12 @@ export function ActiveUpdateTool({
           <XCircle />
           <AlertTitle>Não foi possível continuar</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : null}
+      {notice ? (
+        <Alert role="status">
+          <AlertTitle>Importação concluída com linhas ignoradas</AlertTitle>
+          <AlertDescription>{notice}</AlertDescription>
         </Alert>
       ) : null}
 
