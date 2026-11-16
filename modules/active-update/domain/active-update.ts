@@ -109,6 +109,8 @@ function parseLine(line: string, rowNumber: number): ActiveUpdateRow | null {
 
 export async function* parseActiveUpdateCsv(
   chunks: AsyncIterable<string>,
+  /** Se informado, linhas inválidas são ignoradas e reportadas aqui em vez de abortar a leitura. */
+  onSkip?: (error: CsvValidationError) => void,
 ): AsyncGenerator<ActiveUpdateRow> {
   let buffer = "";
   let rowNumber = 0;
@@ -132,7 +134,13 @@ export async function* parseActiveUpdateCsv(
       }
       return null;
     }
-    return parseLine(line, rowNumber);
+    try {
+      return parseLine(line, rowNumber);
+    } catch (error) {
+      if (!onSkip || !(error instanceof CsvValidationError)) throw error;
+      onSkip(error);
+      return null;
+    }
   };
 
   for await (const chunk of chunks) {

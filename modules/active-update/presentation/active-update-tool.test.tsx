@@ -20,7 +20,7 @@ describe("ActiveUpdateTool", () => {
     );
 
     expect(screen.getByText("Nova atualização")).toBeInTheDocument();
-    expect(screen.getByLabelText("Arquivo CSV")).toBeInTheDocument();
+    expect(screen.getByLabelText("Arquivo CSV ou Excel")).toBeInTheDocument();
     expect(screen.getByText("Nenhum processamento encontrado.")).toBeInTheDocument();
   });
 });
